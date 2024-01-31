@@ -1,7 +1,9 @@
 const catchAsync = require("../utils/catchAsync");
 const User = require("../Models/userModel");
+const Event = require("../Models/eventModel");
 const AdminNotificationService = require("../Utils/adminNotificationService");
 const EmailtoUser = require("../Utils/mailSend");
+const generateReferralCode = require("../Utils/referralCodeGenerator");
 
 // const Event = require("../Models/eventModel");
 // const Referral = require("../Models/referralModel");
@@ -19,10 +21,11 @@ exports.requestAffiliateApproval = catchAsync(async (req, res, next) => {
       message: "You are already an affiliate.",
     });
   }
-  const referralCode = generateReferralCode();
-  await User.findByIdAndUpdate(userId, {
-    referralCode,
-  });
+
+  // const referralCode = generateReferralCode();
+  // await User.findByIdAndUpdate(userId, {
+  //   referralCode,
+  // });
   // Logic to request approval (e.g., notify admin)
   // user.affiliateStatus = "pending";
   // await user.save();
@@ -45,156 +48,271 @@ exports.requestAffiliateApproval = catchAsync(async (req, res, next) => {
 
 //// 2. Aproved Affiliate user request by Admin
 
-exports.requestAprroved = catchAsync(async (req, res, next) => {
+exports.requestApproved = catchAsync(async (req, res, next) => {
   const user = req.user;
-  user.isAffiliate = req.body.isAffiliate; // send in body isAffiliate = true
+  user.isAffiliate = req.body.isAffiliate;
+
   await user.save();
+
   try {
     await EmailtoUser.mailSend(user);
   } catch (error) {
     console.error("Error Sending Email to User:", error);
   }
-  if ((user.isAffiliate = true)) {
+
+  if (user.isAffiliate === true) {
+    const referralCode = generateReferralCode();
+
+    // Assuming you want to update the user's referral code field
+    user.referralCode = referralCode;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      status: 200,
+      message: "Affiliate user request approved.",
+      data: { user },
+    });
+  } else if (user.isAffiliate === false) {
     return res.status(400).json({
       success: false,
       status: 400,
-      message: "Affiliate user request approved.",
+      message: "Affiliate user request rejected",
+      data: { user },
     });
   }
 });
 
-//// 3. When User click on share event user will recieve a Unique link to share in his network
+// exports.requestApproved = catchAsync(async (req, res, next) => {
+//   const user = req.user;
+//   user.isAffiliate = req.body.isAffiliate;
+//   // const userId = req.user._id;
 
-// handle event booking with referral link
-exports.bookEventWithReferral = catchAsync(async (req, res, next) => {
-  //// 1. get event id and user referral code
-  const { eventId, referralCode } = req.body;
-  const userId = req.user._id;
-
-  // Check if the referral code is valid
-  const referrer = await User.findOne({ referralCode });
-  if (!referrer) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid referral code.",
-    });
-  }
-
-  // event booking logic
-  // ...
-
-  // Calculate and update cashback for the referrer
-  await calculateAndUpdateCashback(eventId, referrer._id);
-
-  return res.status(200).json({
-    success: true,
-    message: "Event booked successfully with referral.",
-    data: {},
-  });
-});
-
-// // Function to calculate and update cashback for the referral
-// exports.calculateAndUpdateCashback = catchAsync(async (eventId, referrerId) => {
+//   await user.save();
 //   try {
-//     const event = await Event.findById(eventId);
-//     const cashbackAmount = event.price * 0.05; // 5% cashback
-
-//     // Update cashback for the referrer
-//     await User.findByIdAndUpdate(referrerId, {
-//       $inc: { walletBalance: cashbackAmount },
-//     });
-
-//     // Save the cashback information in the Referral model
-//     await Referral.create({
-//       referrer: referrerId,
-//       event: eventId,
-//       cashbackAmount,
-//     });
+//     await EmailtoUser.mailSend(user);
 //   } catch (error) {
-//     console.error("Error calculating and updating cashback:", error);
+//     console.error("Error Sending Email to User:", error);
+//   }
+
+//   if (user.isAffiliate === true) {
+//     const referralCode = CodeGenerator.generateReferralCode();
+//     await User.findByIdAndUpdate(user._id, referralCode);
+//     return res.status(200).json({
+//       success: true,
+//       status: 200,
+//       message: "Affiliate user request approved.",
+//       data: { user },
+//     });
+//   } else if (user.isAffiliate === false) {
+//     return res.status(400).json({
+//       success: false,
+//       status: 400,
+//       message: "Affiliate user request rejected",
+//       data: { user },
+//     });
 //   }
 // });
 
-// Controller to join the affiliate program
-exports.joinAffiliateProgram = catchAsync(async (req, res, next) => {
-  const userId = req.user._id;
+// //// Share Event
+// exports.shareEvent = catchAsync(async (req, res, next) => {
+//   // Get current user
+//   const user = req.user;
+//   const Event = req.eventId;
 
-  // Check if the user is already an affiliate
-  const user = await User.findById(userId);
-  if (user.isAffiliate) {
+//   // Check if the user is an affiliate
+//   let referralCode = null;
+//   if (user.isAffiliate) {
+//     // If the user is an affiliate, get their referral code
+//     referralCode = user.referralCode;
+//   }
+
+//   // Assuming eventId is present in the request parameters (e.g., /share-event/:eventId)
+//   const eventId = req.Event.eventId;
+
+//   // Check if eventId is provided in the request parameters
+//   if (!eventId) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Event ID is required",
+//     });
+//   }
+
+//   try {
+//     // Fetch event details from the database
+//     const event = await Event.findById(eventId);
+
+//     if (!event) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Event not found" });
+//     }
+
+//     // Return user details, event ID, and referral code (if applicable)
+//     return res.json({
+//       success: true,
+//       data: {
+//         user: {
+//           userId: user._id,
+//           name: user.name,
+//           email: user.email,
+//           // Add other user details as needed
+//         },
+//         event: {
+//           eventId: event._id,
+//           eventName: event.name,
+//           // Add other event details as needed
+//         },
+//         referralCode: referralCode, // Will be null for non-affiliate users
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal server error" });
+//   }
+// });
+
+exports.shareEvent = catchAsync(async (req, res, next) => {
+  // Get current user
+  const user = req.user;
+
+  const eventId = req.params.eventId;
+
+  // Check if eventId is provided in the request parameters
+  if (!eventId) {
     return res.status(400).json({
       success: false,
-      message: "User is already an affiliate.",
+      message: "Event ID is required",
     });
   }
 
-  // Generate a unique referral code for the user
-  const referralCode = generateReferralCode();
+  try {
+    // Fetch event details from the database
+    const event = await Event.findById(eventId);
 
-  // Update user as an affiliate with the generated referral code
-  await User.findByIdAndUpdate(userId, {
-    isAffiliate: true,
-    referralCode,
-  });
+    if (!event) {
+      return res
+        .status(404)
+        .json({ success: false, status: 404, message: "Event not found" });
+    }
+
+    // Generate a unique shareable link with appropriate encoding
+    const shareableLink = `${req.protocol}://${req.get(
+      "host"
+    )}/shared-event/${eventId}?referrer=${user._id}`;
+
+    // Return user details, event ID, and shareable link
+    return res.status(200).json({
+      success: true,
+      status: 200,
+      data: {
+        user: {
+          userId: user._id,
+          referralCode: user.referralCode,
+        },
+        event: {
+          eventId: event._id,
+        },
+        shareableLink: shareableLink,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+// Function to calculate and update cashback for the referral
+exports.calculateAndUpdateCashback = catchAsync(async (eventId, referrerId) => {
+  try {
+    const event = await Event.findById(eventId);
+    const cashbackAmount = event.price * 0.05; // 5% cashback
+
+    // Update cashback for the referrer
+    await User.findByIdAndUpdate(referrerId, {
+      $inc: { walletBalance: cashbackAmount },
+    });
+
+    // Save the cashback information in the Referral model
+    await Referral.create({
+      referrer: referrerId,
+      event: eventId,
+      cashbackAmount,
+    });
+  } catch (error) {
+    console.error("Error calculating and updating cashback:", error);
+  }
+});
+// // handle event booking with referral link
+// exports.bookEvents = catchAsync(async (req, res, next) => {
+//   //// 1. get event id and user referral code
+//   const { eventId, userId } = req.body;
+
+//   // Check if the referral code is valid
+//   const referrer = await User.findOne(userId.referralCode);
+//   console.log(referrer);
+//   if (referrer) {
+//     await calculateAndUpdateCashback(eventId, referrer._id);
+
+//     /////Your event booking loigic here
+//     // return res.status(400).json({
+//     //   success: false,
+//     //   message: "Invalid referral code.",
+//     // });
+//   } else {
+//     ///// your event booking logic here
+//   }
+//   // event booking logic
+
+//   // Calculate and update cashback for the referrer
+
+//   return res.status(200).json({
+//     success: true,
+//     status: 200,
+//     message: "Event booked successfully with referral.",
+//     data: {},
+//   });
+// });
+
+exports.bookEvents = catchAsync(async (req, res, next) => {
+  //// 1. get event id and user referral code
+  const { eventId, userId } = req.body;
+
+  // Check if the user is a PRuser
+  const user = await User.findById(userId);
+  if (user.userType === "PRuser") {
+    return res.status(400).json({
+      success: false,
+      message: "PRusers are not allowed to book events.",
+    });
+  }
+
+  // Check if the referral code is valid
+  if (user.referralCode) {
+    const referrer = await User.findOne({ referralCode: user.referralCode });
+    if (referrer) {
+      await calculateAndUpdateCashback(eventId, referrer._id);
+      // Add your event booking logic here
+      return res.status(200).json({
+        success: true,
+        status: 200,
+        message: "Event booked successfully with referral.",
+        data: {},
+      });
+    }
+  }
+
+  // If no referral code or invalid referral code, proceed with the event booking
+  // Add your event booking logic here
 
   return res.status(200).json({
     success: true,
-    message: "User joined the affiliate program successfully.",
-    data: { referralCode },
-  });
-});
-
-const Referral = require("../Models/referralModel");
-const generateReferralCode = require("../Utils/referralCodeGenerator");
-
-exports.generateReferralLink = catchAsync(async (req, res, next) => {
-  const referrer = req.user._id; // Assuming the authenticated user is the referrer
-  const { eventId, refereeId } = req.body; // You need to provide the event and referee IDs in the request body
-
-  // Generate a unique referral code
-  const referralCode = generateReferralCode();
-
-  // Create a new referral entry
-  const referral = await Referral.create({
-    referrer,
-    referee: refereeId,
-    event: eventId,
-    referralCode,
-  });
-
-  return res.json({
-    success: true,
     status: 200,
-    message: "Referral link generated successfully",
-    data: { referral },
-  });
-});
-
-exports.calculateCashback = catchAsync(async (req, res, next) => {
-  const { referralCode } = req.body; // Referral code entered by the user during booking
-
-  // Find the referral entry using the referral code
-  const referral = await Referral.findOne({ referralCode }).populate("event");
-
-  if (!referral) {
-    return res.status(404).json({
-      success: false,
-      status: 404,
-      message: "Referral not found",
-      data: {},
-    });
-  }
-
-  // Calculate cashback (5% of the event price)
-  const cashbackAmount = 0.05 * referral.event.price;
-
-  // Update the referral entry with the cashback amount
-  await Referral.findByIdAndUpdate(referral._id, { cashbackAmount });
-
-  return res.json({
-    success: true,
-    status: 200,
-    message: "Cashback calculated and updated successfully",
-    data: { cashbackAmount },
+    message: "Event booked successfully.",
+    data: {},
   });
 });

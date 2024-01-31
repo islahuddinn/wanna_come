@@ -29,10 +29,10 @@ router.post(
   "/requestAffiliateApproval",
   affiliateControler.requestAffiliateApproval
 );
-router.post("/requestAprroved", affiliateControler.requestAprroved);
-router.post("/generateReferralLink", affiliateControler.generateReferralLink);
+router.post("/requestAprroved", affiliateControler.requestApproved);
+router.post("/share-events/:eventId", affiliateControler.shareEvent);
 // router.get("/getAffiliateCode", affiliateControler.getAffiliateCode);
-router.post("/handleEventCommission", affiliateControler.calculateCashback);
+// router.post("/handleEventCommission", affiliateControler.calculateCashback);
 router.patch("/updateMyPassword", authController.updatePassword);
 router.post("/logout", authController.logout);
 // router.post(
