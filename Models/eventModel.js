@@ -17,6 +17,10 @@ const eventSchema = new mongoose.Schema({
     coordinates: { type: [Number], default: [0, 0] },
   },
   image: String,
+  price: {
+    type: Number,
+    default: 0,
+  },
   eventInfo: {
     type: String,
     required: true,

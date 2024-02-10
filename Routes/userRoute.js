@@ -2,6 +2,7 @@ const express = require("express");
 const userControler = require("../Controllers/userController");
 const affiliateControler = require("../Controllers/affiliateController");
 const authController = require("../Controllers/authController");
+// const apiController = require("../Controllers/apiController");
 // const pushNotificationController = require("../controllers/push-notificationController");
 
 const router = express.Router();
@@ -31,7 +32,8 @@ router.post(
 );
 router.post("/requestAprroved", affiliateControler.requestApproved);
 router.post("/share-events/:eventId", affiliateControler.shareEvent);
-// router.get("/getAffiliateCode", affiliateControler.getAffiliateCode);
+router.post("/book-event", affiliateControler.bookEvent);
+// router.get("/get-events", apiController.fetchDataFromAPI);
 // router.post("/handleEventCommission", affiliateControler.calculateCashback);
 router.patch("/updateMyPassword", authController.updatePassword);
 router.post("/logout", authController.logout);

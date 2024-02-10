@@ -22,16 +22,15 @@ const userSchema = new mongoose.Schema(
       },
       coordinates: { type: [Number], default: [0, 0] },
     },
-    role: {
-      type: String,
-      enum: {
-        values: ["user", "PRuser", "affiliate"],
-        message: "Enter valid role ",
-      },
-      default: "user",
-    },
+    // role: {
+    //   type: String,
+    //   enum: {
+    //     values: ["user", "PRuser", "affiliate"],
+    //     message: "Enter valid role ",
+    //   },
+    //   default: "user",
+    // },
     number: String,
-    userType: String,
     image: {
       type: String,
       default:
@@ -52,13 +51,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    affiliateStatus: { type: String, default: "pending" },
     referralCode: {
       type: String,
       unique: true,
-      required: true,
     },
-    cashbackAmount: {
+    walletBalance: {
       type: Number,
       default: 0,
     },

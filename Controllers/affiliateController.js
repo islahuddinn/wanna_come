@@ -4,6 +4,7 @@ const Event = require("../Models/eventModel");
 const AdminNotificationService = require("../Utils/adminNotificationService");
 const EmailtoUser = require("../Utils/mailSend");
 const generateReferralCode = require("../Utils/referralCodeGenerator");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // const Event = require("../Models/eventModel");
 // const Referral = require("../Models/referralModel");
@@ -241,50 +242,59 @@ exports.calculateAndUpdateCashback = catchAsync(async (eventId, referrerId) => {
     await Referral.create({
       referrer: referrerId,
       event: eventId,
-      cashbackAmount,
+      walletBalance,
     });
   } catch (error) {
     console.error("Error calculating and updating cashback:", error);
   }
 });
 // // handle event booking with referral link
+
 // exports.bookEvents = catchAsync(async (req, res, next) => {
 //   //// 1. get event id and user referral code
 //   const { eventId, userId } = req.body;
 
-//   // Check if the referral code is valid
-//   const referrer = await User.findOne(userId.referralCode);
-//   console.log(referrer);
-//   if (referrer) {
-//     await calculateAndUpdateCashback(eventId, referrer._id);
-
-//     /////Your event booking loigic here
-//     // return res.status(400).json({
-//     //   success: false,
-//     //   message: "Invalid referral code.",
-//     // });
-//   } else {
-//     ///// your event booking logic here
+//   // Check if the user is a PRuser
+//   const user = await User.findById(userId);
+//   if (user.userType === "PRuser") {
+//     return res.status(400).json({
+//       success: false,
+//       message: "PRusers are not allowed to book events.",
+//     });
 //   }
-//   // event booking logic
 
-//   // Calculate and update cashback for the referrer
+//   // Check if the referral code is valid
+//   if (user.referralCode) {
+//     const referrer = await User.findOne({ referralCode: user.referralCode });
+//     if (referrer) {
+//       await calculateAndUpdateCashback(eventId, referrer._id);
+//       // Add your event booking logic here
+//       return res.status(200).json({
+//         success: true,
+//         status: 200,
+//         message: "Event booked successfully with referral.",
+//         data: {},
+//       });
+//     }
+//   }
+
+//   // If no referral code or invalid referral code, proceed with the event booking
+//   // Add your event booking logic here
 
 //   return res.status(200).json({
 //     success: true,
 //     status: 200,
-//     message: "Event booked successfully with referral.",
+//     message: "Event booked successfully.",
 //     data: {},
 //   });
 // });
 
-exports.bookEvents = catchAsync(async (req, res, next) => {
+exports.bookEvent = catchAsync(async (req, res, next) => {
   //// 1. get event id and user referral code
   const { eventId, userId } = req.body;
-
   // Check if the user is a PRuser
   const user = await User.findById(userId);
-  if (user.userType === "PRuser") {
+  if (user.isPRUser === true) {
     return res.status(400).json({
       success: false,
       message: "PRusers are not allowed to book events.",
@@ -294,25 +304,40 @@ exports.bookEvents = catchAsync(async (req, res, next) => {
   // Check if the referral code is valid
   if (user.referralCode) {
     const referrer = await User.findOne({ referralCode: user.referralCode });
+    console.log(referrer);
     if (referrer) {
       await calculateAndUpdateCashback(eventId, referrer._id);
+      // Proceed with the Stripe payment
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 1000, // Set your desired amount in cents (e.g., 10 USD)
+        currency: "usd",
+        description: "Event Booking",
+        payment_method: req.body.payment_method,
+        confirm: true,
+      });
+
       // Add your event booking logic here
       return res.status(200).json({
         success: true,
         status: 200,
-        message: "Event booked successfully with referral.",
-        data: {},
+        message: "Event booked successfully.",
+        data: { paymentIntent },
       });
     }
   }
 
-  // If no referral code or invalid referral code, proceed with the event booking
-  // Add your event booking logic here
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: 1000, // Set your desired amount in cents (e.g., 10 USD)
+    currency: "usd",
+    description: "Event Booking",
+    payment_method: req.body.payment_method,
+    confirm: true,
+  });
 
   return res.status(200).json({
     success: true,
     status: 200,
     message: "Event booked successfully.",
-    data: {},
+    data: { paymentIntent },
   });
 });
