@@ -68,19 +68,6 @@
 //   }
 // };
 
-////////SMTP Server credentials
-
-// HOST = sandbox.smtp.mailtrap.io
-// USER_PORT=25
-// USERNAME=5b27b679df0722
-// PASSWORD=c40fc700ead0fd
-// AUTH=PLAIN, LOGIN and CRAM-MD5
-
-// USER_HOST = 'smtp.gmail.com'
-// GMAILUSER = 'molvee87@gmail.com'
-// GMAILPASS = 'fixeooytsponajox'
-// STRIPE_SECRET_KEY=A-for-Apple-B
-
 const nodemailer = require("nodemailer");
 const pug = require("pug");
 
@@ -129,11 +116,11 @@ module.exports = class Email {
     await this.send(`Your OTP is: ${a}`, `Email Verification For Mamvo App`);
   }
 
-  // async sendGuardianWelcome(a) {
+  // async sendMamvoWelcome(a) {
   //   console.log("sending mail...");
   //   await this.send(
   //     `Welcome, Your Join OTP is: ${a}`,
-  //     `Account Setup Verification For Guardian Trace App`
+  //     `Account Setup Verification For Mamvo App`
   //   );
   // }
 
