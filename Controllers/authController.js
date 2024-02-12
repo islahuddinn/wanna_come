@@ -154,6 +154,15 @@ exports.socialLogin = catchAsync(async (req, res) => {
 // =========SIGNUP USER=====================
 
 exports.signup = catchAsync(async (req, res, next) => {
+  // Check if password and confirm password match
+  if (req.body.password !== req.body.confirmPassword) {
+    return res.status(400).json({
+      success: "fail",
+      status: 400,
+      message: "Password and confirm password do not match",
+    });
+  }
+
   let id;
   try {
     let obj = await stripe.customers.create({
@@ -169,13 +178,14 @@ exports.signup = catchAsync(async (req, res, next) => {
   if (user) {
     return res.status(400).json({
       success: false,
-
       status: 400,
       message: "User with given email already exist",
       errorType: "email-already-exist",
       data: {},
     });
   }
+
+  // If password and confirm password match, create new user
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -188,6 +198,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     otp: null,
     passwordChangedAt: Date.now(),
   });
+
   const otpLength = 4;
   const otp = generateOtp(otpLength);
   console.log("Generated OTP:", otp);
@@ -226,6 +237,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     data: { user: newUser },
   });
 });
+
 // ========= Send  OTP  =====================
 exports.sendOTP = catchAsync(async (req, res, next) => {
   const otpLength2 = 4;
