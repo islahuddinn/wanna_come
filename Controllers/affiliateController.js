@@ -1,4 +1,4 @@
-const catchAsync = require("../utils/catchAsync");
+const catchAsync = require("../Utils/catchAsync");
 const User = require("../Models/userModel");
 const Event = require("../Models/eventModel");
 const AdminNotificationService = require("../Utils/adminNotificationService");
