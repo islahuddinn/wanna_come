@@ -10,7 +10,7 @@ router.post(
   // authController.protect,
   //   authController.restrictTo("admin"),
   // eventController.setCreator,
-  eventController.postEvent
+  eventController.createEvent
 );
 
 router.get("/", eventController.getallEvent);

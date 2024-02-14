@@ -279,7 +279,6 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
     email: req.body.email,
     passwordResetExpires: { $gt: Date.now() },
   });
-  // if the token has not expired and there is a user set the new password
 
   if (!user) {
     return res.status(400).send({

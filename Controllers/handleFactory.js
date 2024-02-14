@@ -1,6 +1,6 @@
 const catchAsync = require("../Utils/catchAsync");
 const AppErr = require("../Utils/appError");
-const bcrypt = require("bcrypt");
+const { bcrypt } = require("bcrypt");
 const ApiFeatures = require("../Utils/apiFeaturtes");
 const paginationQueryExtracter = require("../Utils/paginationQueryExtractor");
 //  Factory function to delete a document

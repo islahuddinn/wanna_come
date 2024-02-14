@@ -1,49 +1,46 @@
 const admin = require("firebase-admin");
-// let serviceAccount = require("../push-notification-key.json");
+let serviceAccount = require("../fireBaseConfig.json");
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 module.exports = {
-  SendNotification: ({ token, title, body, data }) =>
+  SendNotification: ({ token, title, body }) =>
     new Promise(async (resolve, reject) => {
       try {
-        console.log("dataaaa", data);
         console.log("FCM TOKEN: ", token);
-        admin
-          .messaging()
-          .send({
-            token: token,
+
+        if (!token || !title || !body) {
+          return reject(new Error("FCM token, title or body is required."));
+        }
+
+        const message = {
+          token: token,
+          notification: {
+            title,
+            body,
+          },
+          android: {
             notification: {
-              title,
-              body,
+              sound: "default",
             },
-            android: {
-              notification: {
+          },
+          apns: {
+            payload: {
+              aps: {
                 sound: "default",
               },
             },
-            apns: {
-              payload: {
-                aps: {
-                  sound: "default",
-                },
-              },
-            },
-            data: { notification: JSON.stringify(data) },
-          })
-          .then((response) => {
-            console.log("Message was sent successfully", response);
-            resolve(response);
-          })
-          .catch((err) => {
-            console.log("Error in sending message internally: ", err);
-            resolve();
-          });
+          },
+        };
+
+        const response = await admin.messaging().send(message);
+        console.log("Message was sent successfully", response);
+        resolve(response);
       } catch (error) {
-        console.log("ERROR", error);
-        resolve();
+        console.log("Error in sending message internally: ", error);
+        reject(error);
       }
     }),
 
