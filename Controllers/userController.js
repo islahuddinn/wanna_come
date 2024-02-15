@@ -163,6 +163,40 @@ exports.signupPRUser = catchAsync(async (req, res, next) => {
   });
 });
 
+////// get User Ballance
+exports.getWalletBalance = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        status: 404,
+        message: "User not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      status: 200,
+      message: "Wallet balance retrieved successfully.",
+      data: {
+        walletBalance: user.walletBalance,
+        userId: user,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      status: 500,
+      message: "Internal server error.",
+      error: error.message,
+    });
+  }
+});
+
 /////////// Notifications
 exports.mynotifications = catchAsync(async (req, res, next) => {
   const notifictations = await Notification.find({

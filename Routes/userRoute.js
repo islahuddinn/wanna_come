@@ -31,8 +31,6 @@ router.post(
   affiliateControler.requestAffiliateApproval
 );
 router.post("/requestAprroved", affiliateControler.requestApproved);
-router.post("/share-events/:eventId", affiliateControler.shareEvent);
-router.post("/book-event", affiliateControler.bookEvent);
 // router.get("/get-events", apiController.fetchDataFromAPI);
 // router.post("/handleEventCommission", affiliateControler.calculateCashback);
 router.patch("/updateMyPassword", authController.updatePassword);
@@ -54,6 +52,7 @@ router.patch("/updateProfile", userControler.updateMe);
 // router.patch("/updateProfile", userControler.updateUserProfile);
 // router.delete("/deleteMe", userControler.deleteMe); its not functional yet if required then modify
 router.route("/getAllUsers").get(userControler.getAllUsers);
+router.get("/getwallet", userControler.getWalletBalance);
 
 // router.use(authController.restrictTo("admin"));
 // router.route("/").post(userControler.createUser);

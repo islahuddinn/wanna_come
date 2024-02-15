@@ -29,5 +29,7 @@ router
     // authController.restrictTo("admin"),
     eventController.deleteEvent
   );
+router.post("/share-events/:eventId", eventController.shareEvent);
+router.post("/book-event", eventController.bookEvent);
 
 module.exports = router;
