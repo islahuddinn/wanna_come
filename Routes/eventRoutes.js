@@ -5,6 +5,7 @@ const apiController = require("../Controllers/apiController");
 const eventController = require("../Controllers/eventController");
 const router = express.Router();
 
+router.use(authController.protect);
 router.post(
   "/create",
   // authController.protect,
@@ -29,7 +30,7 @@ router
     // authController.restrictTo("admin"),
     eventController.deleteEvent
   );
-router.post("/share-events/:eventId", eventController.shareEvent);
+router.post("/share-events", eventController.shareEvent);
 router.post("/book-event", eventController.bookEvent);
 
 module.exports = router;

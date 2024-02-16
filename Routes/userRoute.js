@@ -39,18 +39,12 @@ router.post("/logout", authController.logout);
 //   "/send-notification",
 //   pushNotificationController.sendPushNotification
 // );
-// router.patch(
-//   "/updateMe",
-//   userController.uploadUserPhoto,
-//   userController.resizeUserPhoto,
-//   userController.updateMe
-// );
 
 router.get("/me", userControler.getMe, userControler.getUser);
 router.patch("/updateProfile", userControler.updateMe);
 // router.patch("/updateMe", userControler.updateMe);
 // router.patch("/updateProfile", userControler.updateUserProfile);
-// router.delete("/deleteMe", userControler.deleteMe); its not functional yet if required then modify
+// router.delete("/deleteMe", userControler.deleteMe); its not functional
 router.route("/getAllUsers").get(userControler.getAllUsers);
 router.get("/getwallet", userControler.getWalletBalance);
 

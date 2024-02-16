@@ -4,7 +4,6 @@ const Event = require("../Models/eventModel");
 const AdminNotificationService = require("../Utils/adminNotificationService");
 const Email = require("../Utils/mailSend");
 const generateReferralCode = require("../Utils/referralCodeGenerator");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // const Event = require("../Models/eventModel");
 // const Referral = require("../Models/referralModel");
