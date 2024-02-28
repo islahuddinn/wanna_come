@@ -232,7 +232,7 @@ exports.shareEvent = catchAsync(async (req, res, next) => {
   }
 });
 
-///// Function to calculate and update cashback for the referral
+///// Function to calculate and update cashback for the referral/Affiliate
 exports.calculateAndUpdateCashback = catchAsync(async (eventId, referrerId) => {
   try {
     const event = await Event.findById(eventId);
@@ -255,62 +255,6 @@ exports.calculateAndUpdateCashback = catchAsync(async (eventId, referrerId) => {
 });
 
 //////// handle event booking with referral link
-
-// exports.bookEvent = catchAsync(async (req, res, next) => {
-//   //// 1. get event id and user referral code
-//   const { eventId, userId } = req.body;
-//   const CashUpdate = this.calculateAndUpdateCashback;
-//   // Check if the user is a PRuser
-//   const user = await User.findById(userId);
-//   if (user.isPRUser === true) {
-//     return res.status(400).json({
-//       success: false,
-//       status: 400,
-//       message: "PRusers are not allowed to book events.",
-//     });
-//   }
-
-//   // Check if the referral code is valid
-//   if (user.referralCode) {
-//     const referrer = await User.findOne({ referralCode: user.referralCode });
-//     console.log(referrer);
-//     if (referrer) {
-//       CashUpdate(eventId, referrer._id);
-//       //// Proceed with the Stripe payment
-//       const paymentIntent = await stripe.paymentIntents.create({
-//         amount: 1000, // Set your desired amount in cents (e.g., 10 USD)
-//         currency: "usd",
-//         description: "Event Booking",
-//         payment_method: req.body.payment_method,
-//         confirm: true,
-//         return_url: "http://127.0.0.1:3000/api/v1/user/requestAprroved", // it is a dumy url replace it with proper url
-//       });
-
-//       // Add your event booking logic here
-//       return res.status(200).json({
-//         success: true,
-//         status: 200,
-//         message: "Event booked successfully.",
-//         data: { user, paymentIntent },
-//       });
-//     }
-//   }
-
-//   const paymentIntent = await stripe.paymentIntents.create({
-//     amount: 1000, // Set your desired amount in cents (e.g., 10 USD)
-//     currency: "usd",
-//     description: "Event Booking",
-//     payment_method: req.body.payment_method,
-//     confirm: true,
-//   });
-
-//   return res.status(200).json({
-//     success: true,
-//     status: 200,
-//     message: "Event booked successfully for non Affiliates.",
-//     data: { user, paymentIntent },
-//   });
-// });
 
 exports.bookEvent = catchAsync(async (req, res, next) => {
   const { eventId, userId } = req.body;
@@ -350,9 +294,7 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
           amount: event.price * 1000, // Set your desired amount in cents (e.g., 10 USD)
           currency: "usd",
           description: "Event Booking",
-          payment_method: req.body.payment_method,
-          confirm: true,
-          return_url: "http://example.com/api/v1/user/requestApproved", // Replace with the proper URL
+          automatic_payment_methods: { enabled: true },
         });
       }
     }
@@ -363,8 +305,7 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
         amount: event.price * 1000, // Set your desired amount in cents (e.g., 10 USD)
         currency: "usd",
         description: "Event Booking",
-        payment_method: req.body.payment_method,
-        confirm: true,
+        automatic_payment_methods: { enabled: true },
       });
     }
 
