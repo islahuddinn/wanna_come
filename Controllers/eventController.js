@@ -36,15 +36,24 @@ exports.createEvent = catchAsync(async (req, res, next) => {
   const createdEvent = await newEvent.save();
 
   ////// Send Notification
-  const eventTitle = createdEvent.title;
-  const eventLocation = createdEvent.location;
+  // const eventTitle = createdEvent.title;
+  // const eventLocation = createdEvent.location;
+  const data = {
+    eventTitle: req.body.title,
+    eventInfo: req.body.eventInfo,
+    eventLocation: req.body.eventLocation,
+  };
   const notificationTitle = "New Event Created";
-  const notificationBody = `Hy Folks, another exciting event "${eventTitle}" is going to be happen at "${eventLocation}".`;
+  const notificationBody =
+    "Hy Folks, another exciting event is going to be happen at eventLocation.";
 
   // const deviceToken = req.body.FCMToken;
 
-  const devices = await Event.find({}, "FCMToken"); // Query to get all devices with their FCM tokens
-  const FCMTokens = devices.map((device) => device.FCMToken);
+  const devices = await User.find({}, "deviceToken");
+  console.log(devices);
+  const FCMTokens = devices.map((device) => device.deviceToken);
+  console.log(FCMTokens);
+
   if (!FCMTokens) {
     return res.status(404).json({
       success: false,
@@ -55,9 +64,10 @@ exports.createEvent = catchAsync(async (req, res, next) => {
 
   try {
     await SendNotificationMultiCast({
-      token: FCMTokens,
+      tokens: FCMTokens,
       title: notificationTitle,
       body: notificationBody,
+      data: data,
     });
     console.log("Notification sent to all users.");
   } catch (error) {
@@ -111,21 +121,37 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
     const updatedEvent = await eventToUpdate.save();
 
     ////// Send Notification
-    const eventTitle = updatedEvent.title;
-    const eventLocation = updatedEvent.location;
+    const data = {
+      eventTitle: req.body.title,
+      eventInfo: req.body.eventInfo,
+      eventLocation: req.body.eventLocation,
+    };
     const notificationTitle = "Event Updated";
-    const notificationBody = `The "${eventTitle}" has been updated. location: "${eventLocation}"`;
-    const deviceToken = req.body.FCMToken;
+    const notificationBody = "The event has been updated.";
+    // const deviceToken = req.body.FCMToken;
+    const devices = await User.find({}, "deviceToken");
+    console.log(devices);
+    const FCMTokens = devices.map((device) => device.deviceToken);
+    console.log(FCMTokens);
+
+    if (!FCMTokens) {
+      return res.status(404).json({
+        success: false,
+        status: 404,
+        message: "FCMTokens not found...",
+      });
+    }
 
     try {
-      await SendNotification({
-        token: deviceToken,
+      await SendNotificationMultiCast({
+        tokens: FCMTokens,
         title: notificationTitle,
         body: notificationBody,
+        data: data,
       });
-      console.log("Notification sent to user.");
+      console.log("Notification sent to all users.");
     } catch (error) {
-      console.error("Error sending notification:", error);
+      console.error("Error sending notification.....:", error);
     }
 
     res.status(200).json({
@@ -154,25 +180,43 @@ exports.deleteEvent = catchAsync(async (req, res, next) => {
       });
     }
 
-    const eventTitle = eventToDelete.title;
+    // const eventTitle = eventToDelete.title;
 
     await eventToDelete.deleteOne();
 
     ////// Send Notification
+    const data = {
+      eventTitle: eventToDelete.title,
+      eventInfo: eventToDelete.eventInfo,
+      eventLocation: eventToDelete.eventLocation,
+    };
     const notificationTitle = "Event Deleted";
-    const notificationBody = `The event "${eventTitle}" has been deleted successfully.`;
+    const notificationBody = "The event  has been deleted successfully.";
 
-    const deviceToken = req.body.FCMToken;
+    // const deviceToken = req.body.FCMToken;
+    const devices = await User.find({}, "deviceToken");
+    console.log(devices);
+    const FCMTokens = devices.map((device) => device.deviceToken);
+    console.log(FCMTokens);
+
+    if (!FCMTokens) {
+      return res.status(404).json({
+        success: false,
+        status: 404,
+        message: "FCMTokens not found...",
+      });
+    }
 
     try {
-      await SendNotification({
-        token: deviceToken,
+      await SendNotificationMultiCast({
+        tokens: FCMTokens,
         title: notificationTitle,
         body: notificationBody,
+        data: data,
       });
-      console.log("Notification sent to user.");
+      console.log("Notification sent to all users.");
     } catch (error) {
-      console.error("Error sending notification:", error);
+      console.error("Error sending notification.....:", error);
     }
 
     res.status(204).json({
@@ -291,10 +335,26 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
         CashUpdate(eventId, referrer._id);
         // Proceed with Stripe payment integration
         paymentIntent = await stripe.paymentIntents.create({
-          amount: event.price * 1000, // Set your desired amount in cents (e.g., 10 USD)
+          amount: event.price * 100, // Set your desired amount in cents (e.g., 10 USD)
           currency: "usd",
           description: "Event Booking",
-          automatic_payment_methods: { enabled: true },
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
+        // Confirm the payment intent to complete the payment
+        const confirmedPaymentIntent = await stripe.paymentIntents.confirm(
+          paymentIntent.id,
+          {
+            payment_method: "pm_card_visa",
+            return_url: "https://www.example.com",
+          }
+        );
+        return res.status(200).json({
+          success: true,
+          status: 200,
+          message: "Event booked successfully.",
+          data: { user, paymentIntent: confirmedPaymentIntent },
         });
       }
     }
@@ -302,18 +362,25 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
     // If no referral code or it's invalid, proceed with Stripe payment integration
     if (!paymentIntent) {
       paymentIntent = await stripe.paymentIntents.create({
-        amount: event.price * 1000, // Set your desired amount in cents (e.g., 10 USD)
+        amount: event.price * 100, // Set your desired amount in cents (e.g., 10 USD)
         currency: "usd",
         description: "Event Booking",
         automatic_payment_methods: { enabled: true },
       });
     }
-
+    // Confirm the payment intent to complete the payment
+    const confirmedPaymentIntent = await stripe.paymentIntents.confirm(
+      paymentIntent.id,
+      {
+        payment_method: "pm_card_visa",
+        return_url: "https://www.example.com",
+      }
+    );
     return res.status(200).json({
       success: true,
       status: 200,
       message: "Event booked successfully.",
-      data: { user, paymentIntent },
+      data: { user, paymentIntent: confirmedPaymentIntent },
     });
   } catch (error) {
     // Handle any errors
@@ -325,6 +392,8 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
     });
   }
 });
+
+//// function to cancel the book event
 
 exports.getallEvent = factory.getAll(Event);
 exports.getOneEvent = factory.getOne(Event);
