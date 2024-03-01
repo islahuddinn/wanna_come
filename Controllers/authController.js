@@ -13,6 +13,7 @@ const generateOtp = require("../Utils/otpGenerator");
 // const cron = require("node-cron");
 const RefreshRecord = require("../Models/refreshRecordModel");
 const DeviceSession = require("../Models/sessionModel");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const signToken = (id, noExpiry) => {
   return jwt.sign(
@@ -239,8 +240,10 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 // ========= Send  OTP  =====================
+
 exports.sendOTP = catchAsync(async (req, res, next) => {
   const otpLength2 = 4;
+  // const otp = generateOtp(otpLength2);
   const otp = generateOtp(otpLength2);
   // console.log(req.body);
   const user = await User.findOne({ email: req.body.email });
@@ -252,6 +255,9 @@ exports.sendOTP = catchAsync(async (req, res, next) => {
       data: {},
     });
   }
+  user.passwordResetToken = otp;
+  await user.save();
+
   const newUser = await User.findOneAndUpdate(
     { email: req.body.email },
     { otp },
@@ -661,7 +667,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 exports.verifyOtpForResetPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({
     email: req.body.email,
-    // passwordResetExpires: { $gt: Date.now() },
+    // passwordResetExpires: { gt: Date.now() },
   });
   // if the token has not expired and there is a user set the new password
   console.log(user);
