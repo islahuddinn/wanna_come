@@ -612,7 +612,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 exports.resetPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({
     email: req.body.email,
-    // passwordResetExpires: { $gt: Date.now() },
+    // passwordResetExpires: { gt: Date.now() },
   });
   console.log(user);
   // if the token has not expired and there is a user set the new password
@@ -636,7 +636,14 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     });
   }
   user.password = req.body.password;
-  // user.confirmPassword = req.body.confirmPassword;
+  user.confirmPassword = req.body.confirmPassword;
+  if (req.body.password !== req.body.confirmPassword) {
+    return res.status(400).json({
+      success: "fail",
+      status: 400,
+      message: "Password and confirm password do not match",
+    });
+  }
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
 
@@ -701,7 +708,6 @@ exports.verifyOtpForResetPassword = catchAsync(async (req, res, next) => {
 });
 
 // ===========UPDATE PASSWORD for already login user=================================
-
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1)get user from collection.
   const user = await User.findById(req.user.id).select("+password");
