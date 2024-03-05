@@ -188,7 +188,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   // If password and confirm password match, create new user
   const newUser = await User.create({
-    name: req.body.name,
+    fullName: req.body.fullName,
     email: req.body.email,
     image: req.body.image,
     userType: req.body.userType,
@@ -414,21 +414,24 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
 //     ====================LOGIN User=========================================
 exports.login = catchAsync(async (req, res, next) => {
   console.log("route hit for login");
-  const { email, password } = req.body;
+  const { email, password, location } = req.body; // Extracting location from request body
+  const defaultLocation = { type: "Point", coordinates: [0, 0] }; // Default location
+
   // check if email and password exist
   if (!email || !password) {
-    return res.status(400).send({
-      message: "please provide email and password",
+    return res.status(400).json({
+      message: "Please provide email and password",
       status: 400,
       success: false,
       data: {},
     });
   }
-  // check if user exist and password is correct
+
+  // check if user exists and password is correct
   const user = await User.findOne({ email }).select("+password");
 
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return res.status(400).send({
+    return res.status(400).json({
       message: "Incorrect email or password",
       errorType: "wrong-password",
       status: 400,
@@ -436,20 +439,11 @@ exports.login = catchAsync(async (req, res, next) => {
       data: {},
     });
   }
-  const logedIn = await RefreshToken.findOne({
-    // device: req.body.device.id,
-    device: req.body.device && req.body.device.id,
-    user: user._id,
-  });
-  console.log(logedIn);
-  if (logedIn) {
-    await RefreshToken.findByIdAndDelete({ _id: logedIn._id });
-  }
-  console.log(user);
 
-  if (user.verified == false) {
-    const otpLength3 = 4;
-    const otp = generateOtp(otpLength3);
+  // Check if user is verified
+  if (!user.verified) {
+    const otpLength = 4;
+    const otp = generateOtp(otpLength);
 
     ////// Sending Email..
     try {
@@ -457,34 +451,37 @@ exports.login = catchAsync(async (req, res, next) => {
     } catch (error) {
       console.log(error);
     }
-    ////// Expires Time
-    // const otpExpires = Date.now() + 1 * 60 * 1000 + 10 * 1000;
-    /////////////////
-    const newUserotp = await User.findOneAndUpdate(
+
+    // Update user with OTP
+    await User.findOneAndUpdate(
       { email: user.email },
       { otp },
       { new: true, runValidators: false }
     );
 
-    return res.status(400).send({
-      message: "verification is pending. OTP sent to your email",
-      errorType: "email-not-verify",
+    return res.status(400).json({
+      message: "Verification is pending. OTP sent to your email",
+      errorType: "email-not-verified",
       status: 400,
       success: false,
       data: {},
     });
   }
+
+  // Update device token and location
   await User.updateOne(
     { _id: user._id },
     {
-      // deviceToken: req.body.device.id,
       deviceToken: req.body.device && req.body.device.id,
+      location: location || defaultLocation, // If location is not provided, set default location
     }
   );
-  (user.deviceToken = req.body.device && req.body.device.id),
-    // res.act = loginChecks(user);
-    // creat token from existing function .
-    creatSendToken(user, 200, "Logged In Successfully", res, req.body.device);
+
+  // Update user object with location
+  user.location = location || defaultLocation;
+
+  // Create and send token for user authentication
+  creatSendToken(user, 200, "Logged In Successfully", res, req.body.device);
 });
 
 // ===========================VERIFY TOKEN BEFORE GETTING DATA=====================
@@ -619,9 +616,9 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   if (!user) {
     return res.status(400).send({
-      message: "Token may expire",
+      message: "User not found pleasse login again",
       success: false,
-      errorType: "otp-expired",
+      errorType: "User not found",
       status: 400,
       data: {},
     });
