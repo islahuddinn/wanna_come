@@ -1,6 +1,5 @@
 const express = require("express");
 const userControler = require("../Controllers/userController");
-const affiliateControler = require("../Controllers/affiliateController");
 const authController = require("../Controllers/authController");
 // const apiController = require("../Controllers/apiController");
 // const pushNotificationController = require("../controllers/push-notificationController");
@@ -26,11 +25,7 @@ router.post(
 // protecting all routes ussing protect midleware
 router.use(authController.protect);
 // router.get("/mynotifications", userController.mynotifications);
-router.post(
-  "/requestAffiliateApproval",
-  affiliateControler.requestAffiliateApproval
-);
-router.post("/requestAprroved", affiliateControler.requestApproved);
+
 // router.get("/get-events", apiController.fetchDataFromAPI);
 // router.post("/handleEventCommission", affiliateControler.calculateCashback);
 router.patch("/updateMyPassword", authController.updatePassword);

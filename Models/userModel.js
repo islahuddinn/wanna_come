@@ -4,11 +4,11 @@ const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    firstName: {
       type: String,
       trim: true,
     },
-    fullName: {
+    lastName: {
       type: String,
       trim: true,
     },
@@ -19,18 +19,39 @@ const userSchema = new mongoose.Schema(
       //   lowercase: truee,
       validate: [validator.isEmail, "please provide a valid email"],
     },
-    location: {
+    businessLocation: {
       type: {
         type: String,
         default: "Point",
       },
       coordinates: { type: [Number], default: [0, 0] },
     },
-    number: String,
     image: {
       type: String,
       default:
         "https://icon-library.com/images/default-profile-icon/default-profile-icon-6.jpg",
+    },
+    userType: {
+      type: String,
+      enum: ["User", "Owner"],
+      default: "User",
+    },
+    businessName: {
+      type: String,
+      required: true,
+    },
+    openingTime: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    closingTime: {
+      type: Number,
+      required: true,
+    },
+    businessDescription: {
+      type: String,
+      required: true,
     },
     password: {
       type: String,
@@ -43,9 +64,10 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
       select: false,
     },
-    isAffiliate: {
-      type: Boolean,
-      default: false,
+    subscription: {
+      type: String,
+      enum: ["free", "monthly", "yearly"],
+      default: "free",
     },
     referralCode: {
       type: String,
@@ -54,11 +76,6 @@ const userSchema = new mongoose.Schema(
     walletBalance: {
       type: Number,
       default: 0,
-    },
-
-    isPRUser: {
-      type: Boolean,
-      default: false,
     },
     passwordChangedAt: Date,
     passwordResetToken: String,

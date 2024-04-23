@@ -1,7 +1,6 @@
 const express = require("express");
 const userController = require("../Controllers/userController");
 const authController = require("../Controllers/authController");
-const apiController = require("../Controllers/apiController");
 const eventController = require("../Controllers/eventController");
 const router = express.Router();
 
@@ -15,7 +14,6 @@ router.post(
 );
 
 router.get("/", eventController.getallEvent);
-router.get("/get-events", apiController.fetchDataFromAPI);
 
 router
   .route("/:id")

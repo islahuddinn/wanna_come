@@ -1,13 +1,25 @@
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
+  thumb: {
+    type: String,
+    required: true,
+  },
   title: {
     type: String,
     required: true,
     unique: true,
   },
-  description: {
-    type: String,
+  price: {
+    type: Number,
+    default: 0,
+  },
+  date: {
+    type: Date,
+    // required: true,
+  },
+  time: {
+    type: Number,
     required: true,
   },
   location: {
@@ -17,22 +29,19 @@ const eventSchema = new mongoose.Schema({
     },
     coordinates: { type: [Number], default: [0, 0] },
   },
-  image: String,
-  price: {
-    type: Number,
-    default: 0,
-  },
-  eventInfo: {
+  description: {
     type: String,
     required: true,
   },
-  age: {
-    type: String,
-    // required: true,
+  availableTickets: {
+    type: Number,
+    required: true,
+    default: 0,
   },
-  date: {
-    type: Date,
-    // required: true,
+  persons: {
+    type: Number,
+    required: true,
+    default: 0,
   },
 });
 
