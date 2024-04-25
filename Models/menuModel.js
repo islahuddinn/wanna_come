@@ -8,7 +8,8 @@ const menuSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true,
-    default: "",
+    default:
+      "https://icon-library.com/images/default-profile-icon/default-profile-icon-6.jpg",
   },
   price: {
     type: Number,

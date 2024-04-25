@@ -15,8 +15,9 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
-      required: [true, "must enter email"],
-      //   lowercase: truee,
+      trim: true,
+      lowerCase: true,
+      required: [true, "Enter a valid email"],
       validate: [validator.isEmail, "please provide a valid email"],
     },
     businessLocation: {
@@ -38,36 +39,36 @@ const userSchema = new mongoose.Schema(
     },
     businessName: {
       type: String,
-      required: true,
     },
     openingTime: {
       type: Number,
-      required: true,
       default: 0,
     },
     closingTime: {
       type: Number,
-      required: true,
     },
     businessDescription: {
       type: String,
-      required: true,
     },
     password: {
       type: String,
-      required: [true, "must enter password"],
-      minlength: 8,
+      required: [true, "Password is a required field"],
+      minlength: [8, "Password must be of atleast 8 Charactors"],
       select: false,
     },
     confirmPassword: {
       type: String,
-      minlength: 8,
+      minlength: [8, "Password must be of atleast 8 Charactors"],
       select: false,
     },
-    subscription: {
+    subscriptionType: {
       type: String,
       enum: ["free", "monthly", "yearly"],
       default: "free",
+    },
+    isComplete: {
+      type: Boolean,
+      default: false,
     },
     referralCode: {
       type: String,

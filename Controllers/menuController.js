@@ -1,6 +1,6 @@
 const catchAsync = require("../Utils/catchAsync");
 const appError = require("../Utils/appError");
-const Restaurant = require("../Models/restaurantModel");
+const Menu = require("../Models/menuModel");
 const Event = require("../Models/eventModel");
 const User = require("../Models/userModel");
 const factory = require("./handleFactory");
@@ -29,6 +29,6 @@ exports.createMenu = catchAsync(async (req, res, next) => {
     next(error);
   }
 });
-exports.getallRestaurant = factory.getAll(Restaurant);
-exports.getOneRestaurant = factory.getOne(Restaurant);
-exports.deleteRestaurant = factory.deleteOne(Restaurant);
+exports.getallMenus = factory.getAll(Menu);
+exports.getOneMenu = factory.getOne(Menu);
+exports.deleteMenu = factory.deleteOne(Menu);

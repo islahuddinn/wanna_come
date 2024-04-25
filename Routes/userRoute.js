@@ -24,11 +24,11 @@ router.post(
 
 // protecting all routes ussing protect midleware
 router.use(authController.protect);
+router.patch("/updateMyPassword", authController.updatePassword);
 // router.get("/mynotifications", userController.mynotifications);
 
 // router.get("/get-events", apiController.fetchDataFromAPI);
 // router.post("/handleEventCommission", affiliateControler.calculateCashback);
-router.patch("/updateMyPassword", authController.updatePassword);
 router.post("/logout", authController.logout);
 // router.post(
 //   "/send-notification",

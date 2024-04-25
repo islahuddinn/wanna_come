@@ -1,4 +1,5 @@
 const catchAsync = require("../Utils/catchAsync");
+const appError = require("../Utils/appError");
 const Event = require("../Models/eventModel");
 const User = require("../Models/userModel");
 const factory = require("./handleFactory");
@@ -11,68 +12,62 @@ const {
 exports.createEvent = catchAsync(async (req, res, next) => {
   const {
     title,
-    description,
-    location,
     image,
     price,
-    eventInfo,
-    age,
     date,
-    duration,
+    time,
+    location,
+    description,
+    totalTickets,
   } = req.body;
 
-  const newEvent = new Event({
+  const newEvent = await Event.create({
     title,
-    description,
-    location,
     image,
     price,
-    eventInfo,
-    age,
     date,
-    duration,
+    time,
+    location,
+    description,
+    totalTickets,
   });
 
-  const createdEvent = await newEvent.save();
-
   ////// Send Notification
-  // const eventTitle = createdEvent.title;
-  // const eventLocation = createdEvent.location;
-  const data = {
-    eventTitle: req.body.title,
-    eventInfo: req.body.eventInfo,
-    eventLocation: req.body.eventLocation,
-  };
-  const notificationTitle = "New Event Created";
-  const notificationBody =
-    "Hy Folks, another exciting event is going to be happen at eventLocation.";
+  // const data = {
+  //   eventTitle: req.body.title,
+  //   eventInfo: req.body.eventInfo,
+  //   eventLocation: req.body.eventLocation,
+  // };
+  // const notificationTitle = "New Event Created";
+  // const notificationBody =
+  //   "Hy Folks, another exciting event is going to be happen at eventLocation.";
 
-  // const deviceToken = req.body.FCMToken;
+  // // const deviceToken = req.body.FCMToken;
 
-  const devices = await User.find({}, "deviceToken");
-  console.log(devices);
-  const FCMTokens = devices.map((device) => device.deviceToken);
-  console.log(FCMTokens);
+  // const devices = await User.find({}, "deviceToken");
+  // console.log(devices);
+  // const FCMTokens = devices.map((device) => device.deviceToken);
+  // console.log(FCMTokens);
 
-  if (!FCMTokens) {
-    return res.status(404).json({
-      success: false,
-      status: 404,
-      message: "FCMTokens not found...",
-    });
-  }
+  // if (!FCMTokens) {
+  //   return res.status(404).json({
+  //     success: false,
+  //     status: 404,
+  //     message: "FCMTokens not found...",
+  //   });
+  // }
 
-  try {
-    await SendNotificationMultiCast({
-      tokens: FCMTokens,
-      title: notificationTitle,
-      body: notificationBody,
-      data: data,
-    });
-    console.log("Notification sent to all users.");
-  } catch (error) {
-    console.error("Error sending notification.....:", error);
-  }
+  // try {
+  //   await SendNotificationMultiCast({
+  //     tokens: FCMTokens,
+  //     title: notificationTitle,
+  //     body: notificationBody,
+  //     data: data,
+  //   });
+  //   console.log("Notification sent to all users.");
+  // } catch (error) {
+  //   console.error("Error sending notification.....:", error);
+  // }
 
   res.status(201).json({
     status: 201,
@@ -86,14 +81,13 @@ exports.createEvent = catchAsync(async (req, res, next) => {
 exports.updateEvent = catchAsync(async (req, res, next) => {
   const {
     title,
-    description,
-    location,
     image,
     price,
-    eventInfo,
-    age,
     date,
-    duration,
+    time,
+    location,
+    description,
+    totalTickets,
   } = req.body;
 
   const eventId = req.params.id;
@@ -109,50 +103,49 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
       });
     }
     eventToUpdate.title = title;
-    eventToUpdate.description = description;
-    eventToUpdate.location = location;
     eventToUpdate.image = image;
     eventToUpdate.price = price;
-    eventToUpdate.eventInfo = eventInfo;
-    eventToUpdate.age = age;
     eventToUpdate.date = date;
-    eventToUpdate.duration = duration;
+    eventToUpdate.time = time;
+    eventToUpdate.location = location;
+    eventToUpdate.description = description;
+    eventToUpdate.totalTickets = totalTickets;
 
     const updatedEvent = await eventToUpdate.save();
 
     ////// Send Notification
-    const data = {
-      eventTitle: req.body.title,
-      eventInfo: req.body.eventInfo,
-      eventLocation: req.body.eventLocation,
-    };
-    const notificationTitle = "Event Updated";
-    const notificationBody = "The event has been updated.";
-    // const deviceToken = req.body.FCMToken;
-    const devices = await User.find({}, "deviceToken");
-    console.log(devices);
-    const FCMTokens = devices.map((device) => device.deviceToken);
-    console.log(FCMTokens);
+    // const data = {
+    //   eventTitle: req.body.title,
+    //   eventInfo: req.body.eventInfo,
+    //   eventLocation: req.body.eventLocation,
+    // };
+    // const notificationTitle = "Event Updated";
+    // const notificationBody = "The event has been updated.";
+    // // const deviceToken = req.body.FCMToken;
+    // const devices = await User.find({}, "deviceToken");
+    // console.log(devices);
+    // const FCMTokens = devices.map((device) => device.deviceToken);
+    // console.log(FCMTokens);
 
-    if (!FCMTokens) {
-      return res.status(404).json({
-        success: false,
-        status: 404,
-        message: "FCMTokens not found...",
-      });
-    }
+    // if (!FCMTokens) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     status: 404,
+    //     message: "FCMTokens not found...",
+    //   });
+    // }
 
-    try {
-      await SendNotificationMultiCast({
-        tokens: FCMTokens,
-        title: notificationTitle,
-        body: notificationBody,
-        data: data,
-      });
-      console.log("Notification sent to all users.");
-    } catch (error) {
-      console.error("Error sending notification.....:", error);
-    }
+    // try {
+    //   await SendNotificationMultiCast({
+    //     tokens: FCMTokens,
+    //     title: notificationTitle,
+    //     body: notificationBody,
+    //     data: data,
+    //   });
+    //   console.log("Notification sent to all users.");
+    // } catch (error) {
+    //   console.error("Error sending notification.....:", error);
+    // }
 
     res.status(200).json({
       success: true,
@@ -165,163 +158,27 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
   }
 });
 
-////// Delete Event By Id
-exports.deleteEvent = catchAsync(async (req, res, next) => {
-  const eventId = req.params.id;
-  console.log(eventId);
-  try {
-    const eventToDelete = await Event.findById(eventId);
-    console.log(eventToDelete);
-    if (!eventToDelete) {
-      return res.status(404).json({
-        success: false,
-        status: 404,
-        message: "Event not found...",
-      });
-    }
+//////// handle event reservation with stripe
 
-    // const eventTitle = eventToDelete.title;
-
-    await eventToDelete.deleteOne();
-
-    ////// Send Notification
-    const data = {
-      eventTitle: eventToDelete.title,
-      eventInfo: eventToDelete.eventInfo,
-      eventLocation: eventToDelete.eventLocation,
-    };
-    const notificationTitle = "Event Deleted";
-    const notificationBody = "The event  has been deleted successfully.";
-
-    // const deviceToken = req.body.FCMToken;
-    const devices = await User.find({}, "deviceToken");
-    console.log(devices);
-    const FCMTokens = devices.map((device) => device.deviceToken);
-    console.log(FCMTokens);
-
-    if (!FCMTokens) {
-      return res.status(404).json({
-        success: false,
-        status: 404,
-        message: "FCMTokens not found...",
-      });
-    }
-
-    try {
-      await SendNotificationMultiCast({
-        tokens: FCMTokens,
-        title: notificationTitle,
-        body: notificationBody,
-        data: data,
-      });
-      console.log("Notification sent to all users.");
-    } catch (error) {
-      console.error("Error sending notification.....:", error);
-    }
-
-    res.status(204).json({
-      success: true,
-      status: 204,
-      message: "Event deleted successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-exports.shareEvent = catchAsync(async (req, res, next) => {
-  const user = req.user;
-  console.log(user);
-  let eventId = req.body.eventId || req.query.eventId;
-
-  if (!eventId) {
-    return res.status(400).json({
-      success: false,
-      status: 400,
-      message: "Event ID is required",
-    });
-  }
-
-  try {
-    const event = await Event.findById(eventId);
-    if (!event) {
-      return res
-        .status(404)
-        .json({ success: false, status: 404, message: "Event not found" });
-    }
-
-    const shareableLink = `${req.protocol}://${req.get(
-      "host"
-    )}/shared-event/${eventId}?referrer=${user._id}`;
-
-    return res.status(200).json({
-      success: true,
-      status: 200,
-      data: {
-        user: {
-          userId: user._id,
-          referralCode: user.referralCode,
-        },
-        event: {
-          eventId: event.id,
-        },
-        shareableLink: shareableLink,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, status: 500, message: "Internal server error" });
-  }
-});
-
-///// Function to calculate and update cashback for the referral/Affiliate
-exports.calculateAndUpdateCashback = catchAsync(async (eventId, referrerId) => {
-  try {
-    const event = await Event.findById(eventId);
-    const cashbackAmount = event.price * 0.05; // 5% cashback
-
-    // Update cashback for the referrer
-    await User.findByIdAndUpdate(referrerId, {
-      $inc: { walletBalance: cashbackAmount },
-    });
-
-    // Save the cashback information in the Referral model
-    // await Referral.create({
-    //   referrer: referrerId,
-    //   event: eventId,
-    //   walletBalance,
-    // });
-  } catch (error) {
-    console.error("Error calculating and updating cashback:", error);
-  }
-});
-
-//////// handle event booking with referral link
-
-exports.bookEvent = catchAsync(async (req, res, next) => {
-  const { eventId, userId } = req.body;
-  const CashUpdate = this.calculateAndUpdateCashback;
-
+exports.reservEvent = catchAsync(async (req, res, next) => {
+  const { eventId } = req.params;
+  const userId = req.user._id;
   try {
     // Check if the user exists
     const user = await User.findById(userId);
     const event = await Event.findById(eventId);
-    if (!user || !event) {
-      return res.status(404).json({
-        success: false,
-        status: 404,
-        message: "User or event not found.",
-      });
+    if (!user) {
+      return appError("User not found.", 400);
+    } else if (!event) {
+      return appError("Event not found", 400);
     }
 
     // Check if the user is a PR user
-    if (user.isPRUser) {
+    if (user.availableTickets === 0) {
       return res.status(400).json({
         success: false,
         status: 400,
-        message: "Public Relation users are not allowed to book events.",
+        message: "Slots are not available for event reservation.",
       });
     }
 
@@ -335,9 +192,9 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
         CashUpdate(eventId, referrer._id);
         // Proceed with Stripe payment integration
         paymentIntent = await stripe.paymentIntents.create({
-          amount: event.price * 100, // Set your desired amount in cents (e.g., 10 USD)
+          amount: event.price * 100,
           currency: "usd",
-          description: "Event Booking",
+          description: "Event Reservation",
           automatic_payment_methods: {
             enabled: true,
           },
@@ -353,7 +210,7 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
         return res.status(200).json({
           success: true,
           status: 200,
-          message: "Event booked successfully.",
+          message: "Event reserved successfully.",
           data: { user, paymentIntent: confirmedPaymentIntent },
         });
       }
@@ -362,9 +219,9 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
     // If no referral code or it's invalid, proceed with Stripe payment integration
     if (!paymentIntent) {
       paymentIntent = await stripe.paymentIntents.create({
-        amount: event.price * 100, // Set your desired amount in cents (e.g., 10 USD)
+        amount: event.price * 100,
         currency: "usd",
-        description: "Event Booking",
+        description: "Event reservation",
         automatic_payment_methods: { enabled: true },
       });
     }
@@ -379,7 +236,7 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
     return res.status(200).json({
       success: true,
       status: 200,
-      message: "Event booked successfully.",
+      message: "Event reserved successfully.",
       data: { user, paymentIntent: confirmedPaymentIntent },
     });
   } catch (error) {
@@ -393,7 +250,65 @@ exports.bookEvent = catchAsync(async (req, res, next) => {
   }
 });
 
-//// function to cancel the book event
+//// Another function for event reservation
+
+exports.bookReservation = catchAsync(async (req, res, next) => {
+  try {
+    const eventId = req.params.id;
+    const userId = req.user._id;
+    const event = await Event.findById(eventId);
+    const user = await User.findById(userId);
+
+    // Check if the event exists
+    if (!user) {
+      return appError("User not found.", 400);
+    } else if (!event) {
+      return appError("Event not found", 400);
+    }
+    //// Check if tickets are available or not
+    if (user.availableTickets === 0) {
+      return appError("No available tickets", 400);
+    }
+    // Create a payment intent using Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: event.price * 100,
+      currency: "usd",
+      metadata: {
+        eventId: event._id,
+        userId: userId,
+      },
+    });
+
+    // Check if there are available tickets before reservation
+    if (event.availableTickets > 0) {
+      // Update soldTickets and availableTickets
+      event.soldTickets += 1;
+      event.availableTickets -= 1;
+      // Mark the event as booked
+      event.isReserved = true;
+      // Save the updated event
+      await event.save();
+      return {
+        status: 200,
+        success: true,
+        paymentIntentId: paymentIntent.id,
+      };
+    } else {
+      return {
+        success: false,
+        message: "No available tickets",
+      };
+    }
+  } catch (error) {
+    console.error("Error booking reservation:", error);
+    return {
+      status: 500,
+      success: false,
+      message: error.message,
+    };
+  }
+});
 
 exports.getallEvent = factory.getAll(Event);
 exports.getOneEvent = factory.getOne(Event);
+exports.deleteEvent = factory.deleteOne(Event);
