@@ -30,6 +30,7 @@ router.patch("/updateMyPassword", authController.updatePassword);
 // router.get("/get-events", apiController.fetchDataFromAPI);
 // router.post("/handleEventCommission", affiliateControler.calculateCashback);
 router.post("/logout", authController.logout);
+// router.post("/upload-s3", userControler.uploadS3);
 // router.post(
 //   "/send-notification",
 //   pushNotificationController.sendPushNotification
@@ -41,7 +42,7 @@ router.patch("/updateProfile", userControler.updateMe);
 // router.patch("/updateProfile", userControler.updateUserProfile);
 // router.delete("/deleteMe", userControler.deleteMe); its not functional
 router.route("/getAllUsers").get(userControler.getAllUsers);
-router.get("/getwallet", userControler.getWalletBalance);
+// router.get("/getwallet", userControler.getWalletBalance);
 
 // router.use(authController.restrictTo("admin"));
 // router.route("/").post(userControler.createUser);

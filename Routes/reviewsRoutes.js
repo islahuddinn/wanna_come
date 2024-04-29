@@ -1,6 +1,6 @@
 const express = require("express");
-const authController = require("../Controllers/authControllers");
-const feedbackController = require("../Controllers/feedbackController");
+const authController = require("../Controllers/authController");
+const reviewController = require("../Controllers/reviewController");
 
 const router = express.Router();
 
@@ -9,8 +9,8 @@ router
   .post(
     authController.protect,
     authController.restrictTo("User"),
-    feedbackController.setCreator,
-    feedbackController.createFeedback
+    reviewController.setCreator,
+    reviewController.createReview
   );
 
 router
@@ -18,7 +18,7 @@ router
   .get(
     authController.protect,
     authController.restrictTo("Owner"),
-    feedbackController.getAll
+    reviewController.getAll
   );
 
 router
@@ -26,7 +26,7 @@ router
   .get(
     authController.protect,
     authController.restrictTo("Owner"),
-    feedbackController.getUnSeenFeedback
+    reviewController.getUnSeenReview
   );
 
 router
@@ -34,7 +34,7 @@ router
   .get(
     authController.protect,
     authController.restrictTo("Owner"),
-    feedbackController.getSeenFeedback
+    reviewController.getSeenReview
   );
 
 router
@@ -42,7 +42,7 @@ router
   .get(
     authController.protect,
     authController.restrictTo("Owner"),
-    feedbackController.getOne
+    reviewController.getOne
   );
 
 router
@@ -50,7 +50,7 @@ router
   .delete(
     authController.protect,
     authController.restrictTo("Owner"),
-    feedbackController.deleteFeedback
+    reviewController.deleteReview
   );
 
 module.exports = router;

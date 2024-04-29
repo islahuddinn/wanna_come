@@ -20,11 +20,17 @@ const menuSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  numberOfPersons: {
-    type: Number,
-    required: true,
-    default: 0,
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
 });
-const Menu = mongoose.Model("Menu", menuSchema);
+eventSchema.pre([/^find/, "save"], function (next) {
+  this.populate({
+    path: "createdBy",
+    select: "firstName lastName image",
+  });
+  next();
+});
+const Menu = mongoose.model("Menu", menuSchema);
 module.exports = Menu;

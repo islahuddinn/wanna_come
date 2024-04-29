@@ -6,7 +6,7 @@ const User = require("../Models/userModel");
 const factory = require("./handleFactory");
 
 exports.createMenu = catchAsync(async (req, res, next) => {
-  const { dishName, image, price, description, numberOfPersons } = req.body;
+  const { dishName, image, price, description } = req.body;
 
   try {
     // Create a new menu item
@@ -15,10 +15,7 @@ exports.createMenu = catchAsync(async (req, res, next) => {
       image,
       price,
       description,
-      numberOfPersons,
     });
-
-    ////// Optionally, you can include notification sending logic here
 
     res.status(201).json({
       success: true,
@@ -29,6 +26,7 @@ exports.createMenu = catchAsync(async (req, res, next) => {
     next(error);
   }
 });
-exports.getallMenus = factory.getAll(Menu);
+exports.getallMenu = factory.getAll(Menu);
 exports.getOneMenu = factory.getOne(Menu);
+exports.updateMenu = factory.updateOne(Menu);
 exports.deleteMenu = factory.deleteOne(Menu);

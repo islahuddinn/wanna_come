@@ -1,7 +1,7 @@
 const express = require("express");
 const userController = require("../Controllers/userController");
 const authController = require("../Controllers/authController");
-const eventController = require("../Controllers/eventController");
+const menuController = require("../Controllers/menuController");
 const router = express.Router();
 
 // router.use(authController.protect);
@@ -10,23 +10,23 @@ router.post(
   // authController.protect,
   //   authController.restrictTo("Owner"),
   // eventController.setCreator,
-  eventController.createEvent
+  menuController.createMenu
 );
 
-router.get("/", eventController.getallEvent);
+router.get("/", menuController.getallMenu);
 
 router
   .route("/:id")
-  .get(eventController.getOneEvent)
+  .get(menuController.getOneMenu)
   .patch(
     // authController.protect,
     // authController.restrictTo("Owner"),
-    eventController.updateEvent
+    menuController.updateMenu
   )
   .delete(
     // authController.protect,
     // authController.restrictTo("Owner"),
-    eventController.deleteEvent
+    menuController.deleteMenu
   );
 
 module.exports = router;

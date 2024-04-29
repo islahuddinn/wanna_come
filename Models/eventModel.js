@@ -53,9 +53,20 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );
+eventSchema.pre([/^find/, "save"], function (next) {
+  this.populate({
+    path: "createdBy",
+    select: "firstName lastName image",
+  });
+  next();
+});
 
 const Event = mongoose.model("Event", eventSchema);
 module.exports = Event;
