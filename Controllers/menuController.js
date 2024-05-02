@@ -1,8 +1,6 @@
 const catchAsync = require("../Utils/catchAsync");
 const appError = require("../Utils/appError");
 const Menu = require("../Models/menuModel");
-const Event = require("../Models/eventModel");
-const User = require("../Models/userModel");
 const factory = require("./handleFactory");
 
 exports.createMenu = catchAsync(async (req, res, next) => {

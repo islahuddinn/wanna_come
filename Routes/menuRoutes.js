@@ -1,7 +1,7 @@
 const express = require("express");
-const userController = require("../Controllers/userController");
-const authController = require("../Controllers/authController");
-const menuController = require("../Controllers/menuController");
+// const userController = require("../Controllers/userController");
+// const authController = require("../Controllers/authController");
+// const menuController = require("../Controllers/menuController");
 const router = express.Router();
 
 // router.use(authController.protect);

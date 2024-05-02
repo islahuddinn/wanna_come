@@ -18,7 +18,6 @@ exports.createEvent = catchAsync(async (req, res, next) => {
     time,
     location,
     description,
-    totalTickets,
     availableTickets,
     soldTickets,
   } = req.body;
@@ -31,7 +30,6 @@ exports.createEvent = catchAsync(async (req, res, next) => {
     time,
     location,
     description,
-    totalTickets,
     availableTickets,
     soldTickets,
   });

@@ -36,11 +36,6 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    totalTickets: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
     availableTickets: {
       type: Number,
       default: 0,

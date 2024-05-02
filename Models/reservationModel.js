@@ -18,6 +18,9 @@ const reservationSchema = new mongoose.Schema(
     paymentIntentId: {
       type: String,
     },
+    persons: {
+      Type: Number,
+    },
     date: {
       type: Date,
     },

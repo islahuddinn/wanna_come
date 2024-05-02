@@ -4,7 +4,7 @@ const authController = require("../Controllers/authController");
 const reservationController = require("../Controllers/reservationController");
 const router = express.Router();
 
-// router.use(authController.protect);
+router.use(authController.protect);
 router.route("/event-reservation/:id").post(
   // authController.protect,
   //   authController.restrictTo("Owner"),

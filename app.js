@@ -9,13 +9,6 @@ const xss = require("xss-clean");
 const path = require("path");
 const setupRoutesV1 = require("./Routes/routes");
 
-// const privacyRoutes = require("./routes/privacyPolicyRoutes");
-// const termsandconditionRoutes = require("./routes/termsAndConditionRoutes");
-// const setupRoutesV1 = require("./routes/routes");
-// const firebase = require("firebase-admin");
-// const serviceAcount = require("./worldsnap-c7668-firebase-adminsdk-rrpzh-e4a68043ba.json");
-// const hpp = require("hpp");
-
 const app = express();
 
 // firebase.initializeApp({
