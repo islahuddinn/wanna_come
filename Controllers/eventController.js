@@ -32,6 +32,7 @@ exports.createEvent = catchAsync(async (req, res, next) => {
     description,
     availableTickets,
     soldTickets,
+    createdBy: req.user.id,
   });
 
   ////// Send Notification

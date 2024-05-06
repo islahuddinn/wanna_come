@@ -1,33 +1,44 @@
-// const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
-// const restaurantSchema = new mongoose.Schema(
-//   {
-//     image: {
-//       type: String,
-//       required: true,
-//       default: "",
-//     },
-//     restaurantName: {
-//       type: String,
-//       required: true,
-//     },
-//     Date: {
-//       type: Number,
-//       required: true,
-//     },
-//     description: {
-//       type: String,
-//       required: true,
-//     },
-//     location: {
-//       type: {
-//         type: String,
-//         default: "Point",
-//       },
-//       coordinates: { type: [Number], default: [0, 0] },
-//     },
-//   },
-//   { timestamps: true }
-// );
-// const Restaurant = mongoose.model("Restaurant", restaurantSchema);
-// module.exports = Restaurant;
+const restaurantSchema = new mongoose.Schema(
+  {
+    image: {
+      type: String,
+      required: true,
+      default: "",
+    },
+    businessName: {
+      type: String,
+    },
+    openingTime: {
+      type: Number,
+      default: 0,
+    },
+    closingTime: {
+      type: Number,
+    },
+    businessDescription: {
+      type: String,
+    },
+    businessLocation: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: { type: [Number], default: [0, 0] },
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  { timestamps: true }
+);
+restaurantSchema.pre([/^find/, "save"], function (next) {
+  this.populate({
+    path: "createdBy",
+  });
+  next();
+});
+const Restaurant = mongoose.model("Restaurant", restaurantSchema);
+module.exports = Restaurant;

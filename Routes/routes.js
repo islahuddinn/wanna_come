@@ -3,6 +3,7 @@ const userRoutes = require("./userRoute");
 const eventRoutes = require("./eventRoutes");
 // const menuRoutes = require("./menuRoutes");
 const reviewsRoutes = require("./reviewsRoutes");
+const restaurantRoutes = require("./restaurantRoutes");
 const reservationRoutes = require("./reservationRoutes");
 const privacyRoutes = require("./privacyPolicyRoute");
 const termsandconditionRoutes = require("./termsAndConditionRoute");
@@ -13,7 +14,7 @@ const setupRoutesV1 = () => {
   router.use("/user", userRoutes);
   router.use("/events", eventRoutes);
   // router.use("/menu", menuRoutes);
-  // router.use("/restaurants", restaurantRoutes);
+  router.use("/restaurants", restaurantRoutes);
   router.use("/reservations", reservationRoutes);
   router.use("/review", reviewsRoutes);
   router.use("/privacy", privacyRoutes);

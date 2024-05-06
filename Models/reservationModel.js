@@ -8,12 +8,7 @@ const reservationSchema = new mongoose.Schema(
     },
     restaurant: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+      ref: "Restaurant",
     },
     paymentIntentId: {
       type: String,
@@ -27,9 +22,23 @@ const reservationSchema = new mongoose.Schema(
     time: {
       type: String,
     },
+    isReserved: {
+      type: Boolean,
+      default: false,
+    },
+    reservedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );
-
+reservationSchema.pre([/^find/, "save"], function (next) {
+  this.populate({
+    path: "reservedBy",
+    select: "firstName lastName image",
+  });
+  next();
+});
 const Reservation = mongoose.model("Reservation", reservationSchema);
 module.exports = Reservation;

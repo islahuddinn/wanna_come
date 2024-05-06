@@ -7,7 +7,7 @@ const router = express.Router();
 // router.use(authController.protect);
 router.post(
   "/create",
-  // authController.protect,
+  authController.protect,
   //   authController.restrictTo("Owner"),
   // eventController.setCreator,
   eventController.createEvent
@@ -19,12 +19,12 @@ router
   .route("/:id")
   .get(eventController.getOneEvent)
   .patch(
-    // authController.protect,
+    authController.protect,
     // authController.restrictTo("Owner"),
     eventController.updateEvent
   )
   .delete(
-    // authController.protect,
+    authController.protect,
     // authController.restrictTo("Owner"),
     eventController.deleteEvent
   );

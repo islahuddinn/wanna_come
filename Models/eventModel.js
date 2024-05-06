@@ -11,7 +11,6 @@ const eventSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
-      unique: true,
     },
     price: {
       type: Number,
@@ -44,10 +43,6 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    isReserved: {
-      type: Boolean,
-      default: false,
-    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -58,7 +53,6 @@ const eventSchema = new mongoose.Schema(
 eventSchema.pre([/^find/, "save"], function (next) {
   this.populate({
     path: "createdBy",
-    select: "firstName lastName image",
   });
   next();
 });

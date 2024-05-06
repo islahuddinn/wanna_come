@@ -20,13 +20,6 @@ const userSchema = new mongoose.Schema(
       required: [true, "Enter a valid email"],
       validate: [validator.isEmail, "please provide a valid email"],
     },
-    businessLocation: {
-      type: {
-        type: String,
-        default: "Point",
-      },
-      coordinates: { type: [Number], default: [0, 0] },
-    },
     image: {
       type: String,
       default:
@@ -34,21 +27,9 @@ const userSchema = new mongoose.Schema(
     },
     userType: {
       type: String,
-      enum: ["User", "Owner"],
+      enum: ["User", "Owner", "Admin"],
+      message: ["enter vallid role"],
       default: "User",
-    },
-    businessName: {
-      type: String,
-    },
-    openingTime: {
-      type: Number,
-      default: 0,
-    },
-    closingTime: {
-      type: Number,
-    },
-    businessDescription: {
-      type: String,
     },
     password: {
       type: String,
@@ -70,11 +51,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    referralCode: {
+    redeemPoints: {
       type: String,
-      unique: true,
     },
     walletBalance: {
+      type: Number,
+      default: 0,
+    },
+    rewardPoints: {
       type: Number,
       default: 0,
     },
