@@ -62,6 +62,7 @@ module.exports = (error, req, res, next) => {
   error.statusCode = error.statusCode || 500;
   error.message = error.message || "Internal Server Error";
   error.status = error.status || "error";
+  console.error("Incoming Error:", error);
 
   if (process.env.NODE_ENV === "development") {
     devErrors(res, error);

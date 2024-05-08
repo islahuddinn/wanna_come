@@ -25,7 +25,7 @@ const menuSchema = new mongoose.Schema({
     ref: "User",
   },
 });
-eventSchema.pre([/^find/, "save"], function (next) {
+menuSchema.pre([/^find/, "save"], function (next) {
   this.populate({
     path: "createdBy",
     select: "firstName lastName image",

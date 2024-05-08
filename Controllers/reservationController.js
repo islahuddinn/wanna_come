@@ -1,6 +1,8 @@
 const catchAsync = require("../Utils/catchAsync");
 const appError = require("../Utils/appError");
+const CalculateRewards = require("../Utils/calculateRewardPoints");
 const Event = require("../Models/eventModel");
+const Menu = require("../Models/menuModel");
 const User = require("../Models/userModel");
 const Reservation = require("../Models/reservationModel");
 const factory = require("./handleFactory");
@@ -11,67 +13,8 @@ const {
   SendNotificationMultiCast,
 } = require("../Utils/notification");
 const { token } = require("morgan");
+const Restaurant = require("../Models/restaurantModel");
 //////---------Events reservations------//////
-
-// exports.eventReservation = catchAsync(async (req, res, next) => {
-//   try {
-//     const event = req.params.id;
-//     const user = req.user._id;
-
-//     // Check if the user and event exist
-//     if (!user) {
-//       return res.status(400).json({
-//         status: 400,
-//         success: false,
-//         message: "User not found.",
-//       });
-//     } else if (!event) {
-//       return res.status(400).json({
-//         status: 400,
-//         success: false,
-//         message: "Event not found",
-//       });
-//     } else if (event.availableTickets === 0) {
-//       return res.status(400).json({
-//         status: 400,
-//         success: false,
-//         message: "No available tickets",
-//       });
-//     }
-
-//     /// Create a payment intent using Stripe
-//     // const paymentIntent = await stripe.paymentIntents.create({
-//     //   amount: event.price * 100,
-//     //   currency: "usd",
-//     //   metadata: {
-//     //     eventId: event._id,
-//     //     userId: user._id,
-//     //   },
-//     // });
-
-//     // Update soldTickets, available tickets
-//     event.soldTickets += 1;
-//     event.availableTickets -= 1;
-
-//     // Save the updated event
-//     // await event.save();
-
-//     // Return success response
-//     res.status(200).json({
-//       status: 200,
-//       success: true,
-//       // paymentIntentId: paymentIntent.id,
-//       data: event,
-//     });
-//   } catch (error) {
-//     console.error("Error booking reservation:", error);
-//     res.status(500).json({
-//       status: 500,
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// });
 
 exports.eventReservation = catchAsync(async (req, res, next) => {
   const { persons } = req.body;
@@ -82,21 +25,15 @@ exports.eventReservation = catchAsync(async (req, res, next) => {
   const event = await Event.findById(eventId);
   console.log(event, "event being reserved");
   if (!userId) {
-    return res
-      .status(404)
-      .json({ success: false, status: 404, message: "User not found" });
+    return next(new appError("User not found", 404));
   }
   if (!event) {
-    return res
-      .status(404)
-      .json({ success: false, status: 404, message: "Event not found" });
+    return next(new appError("Event not found", 404));
   }
 
   // Check if there are available tickets
   if (event.availableTickets === 0) {
-    return res
-      .status(400)
-      .json({ success: false, status: 400, message: "No available tickets" });
+    return next(new appError("No available tickets", 404));
   }
 
   /// Create a payment intent using Stripe
@@ -123,35 +60,42 @@ exports.eventReservation = catchAsync(async (req, res, next) => {
   event.availableTickets -= persons;
   event.soldTickets += persons;
   await event.save();
+  //////impliment the rewards logic here
+  const reservations = await Reservation.find({ reservedBy: userId });
 
-  // // Send notification to admin about reservation
-  // const title = `Reservation for event "${event.title}" has been made by user ${userId}`;
-  // const body = `Reservation request for event "${event}" has been made by user ${userId}`;
-  // const ownerId = event.createdBy.id;
-  // console.log(ownerId, "mr owner id");
-  // const businessOwner = await User.findById(ownerId);
-  // console.log("here is the business owner of event !", businessOwner);
+  const pointsEarned = CalculateRewards(reservations);
+  req.user.rewardPoints += pointsEarned;
+  await req.user.save();
 
-  // // Find the deviceToken of the business owner
-  // const token = businessOwner.deviceToken;
-  // console.log("fcmToken is here !", token);
-  // // const token = (await RefreshToken.find({ user: creator.id })).map(
-  // //   ({ deviceToken }) => deviceToken
-  // // );
-  // await Notification.create({
-  //   token: token,
-  //   title: title,
-  //   body: body,
-  //   data: { user: userId },
-  // });
-  // await SendNotification({
-  //   token: token,
-  //   title: title,
-  //   body: body,
-  //   data: {
-  //     value: JSON.stringify({ user: userId }),
-  //   },
-  // });
+  // Send notification to admin about reservation
+  const title = `Reservation for event "${event.title}" has been made by user ${userId}`;
+  const body = `Reservation request for event "${event}" has been made by user ${userId}`;
+  const ownerId = event.createdBy.id;
+  console.log(ownerId, "mr owner id");
+  const businessOwner = await User.findById(ownerId);
+  console.log("here is the business owner of event !", businessOwner);
+
+  // Find the deviceToken of the business owner
+  const token = businessOwner.deviceToken;
+  console.log("fcmToken is here !", token);
+  // const token = (await RefreshToken.find({ user: creator.id })).map(
+  //   ({ deviceToken }) => deviceToken
+  // );
+  await Notification.create({
+    token: token,
+    title: title,
+    body: body,
+    receiver: businessOwner._id,
+    data: { user: userId },
+  });
+  await SendNotification({
+    token: token,
+    title: title,
+    body: body,
+    data: {
+      value: JSON.stringify({ user: userId }),
+    },
+  });
 
   res.status(201).json({
     success: true,
@@ -159,6 +103,7 @@ exports.eventReservation = catchAsync(async (req, res, next) => {
     reservation,
     availableTickets: event.availableTickets,
     soldTickets: event.soldTickets,
+    pointsEarned,
   });
 });
 
@@ -169,44 +114,54 @@ exports.tableReservation = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
 
   // Check if the event exists
-  const restaurant = await User.findById(restaurantId);
+  const restaurant = await Restaurant.findById(restaurantId);
   if (!restaurant) {
-    return res
-      .status(404)
-      .json({ status: 404, success: false, message: "Restaurant not found" });
+    return next(new appError("Restaurant not found", 404));
   }
   console.log(restaurant, "selected restaurant by user");
+  const menu = await Menu.findById(selectedMenu);
+  if (!menu) {
+    return next(new appError("Menu not found", 404));
+  }
+  console.log(menu, "selected menu by user");
   // Check if there are available seats
   if (restaurant.availableSeats < persons) {
-    return res.status(400).json({
-      status: 400,
-      success: false,
-      message: "Not enough available seats",
-    });
+    return next(new appError("Not enough available seats", 400));
   }
 
   /// Create a payment intent using Stripe
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: selectedMenu.price * persons * 100, // Assuming price is per person
+    amount: menu.price * persons * 100,
     currency: "usd",
     metadata: {
-      restaurantId: restaurant._id,
-      selectedMenu: selectedMenu,
+      restaurant: restaurant.id,
       userId: userId,
     },
   });
-
+  if (time < restaurant.openingTime || time > restaurant.closingTime) {
+    return next(
+      new appError(
+        "Select the time between opening and closing time of restaurant",
+        400
+      )
+    );
+  }
   // Create reservation
   const reservation = await Reservation.create({
     restaurant: restaurantId,
     paymentIntentId: paymentIntent.id,
     persons,
-    selectedMenu,
+    menu,
     date: date,
     time: time,
     reservedBy: userId,
   });
+  //////rewards earned logic
+  const reservations = await Reservation.find({ reservedBy: userId });
 
+  const pointsEarned = CalculateRewards(reservations);
+  req.user.rewardPoints += pointsEarned;
+  await req.user.save();
   // // Send notification to admin about reservation
   // await Notification.create({
   //   FcmToken,
@@ -233,6 +188,7 @@ exports.tableReservation = catchAsync(async (req, res, next) => {
     status: 201,
     message: "Reservation created successfully",
     reservation,
+    pointsEarned,
   });
 });
 
@@ -245,9 +201,7 @@ exports.acceptRejectReservation = catchAsync(async (req, res, next) => {
   const reservation = await Reservation.findById(reservationId);
 
   if (!reservation) {
-    return res
-      .status(404)
-      .json({ success: false, status: 404, message: "Reservation not found" });
+    return next(new appError("Reservation Not found", 404));
   }
 
   // Determine notification message based on reservation status
@@ -264,9 +218,7 @@ exports.acceptRejectReservation = catchAsync(async (req, res, next) => {
   const booker = await User.findById(bookerId);
 
   if (!booker) {
-    return res
-      .status(404)
-      .json({ success: false, message: "Event booker not found" });
+    return next(new appError("Event/Table booker not found", 404));
   }
 
   const title = "Reservation Status Update";
@@ -303,17 +255,63 @@ exports.acceptRejectReservation = catchAsync(async (req, res, next) => {
 
 ////////-----Get all reservations of user----//////
 exports.getAllReservationsByUser = catchAsync(async (req, res, next) => {
-  const { userId } = req.user.id;
+  const userId = req.user.id;
   console.log(userId, "mr user");
   const reservations = await Reservation.find({ reservedBy: userId });
 
   res.status(200).json({
     success: true,
+    status: 200,
     message: "Reservations retrieved successfully",
     reservations,
   });
 });
-/////Analytics
+/////---------Reward Points--------//////
+// Controller function to redeem rewards points
+exports.redeemRewardsPoints = async (req, res, next) => {
+  try {
+    // Logic to redeem rewards points
+    const pointsToRedeem = req.body.pointsToRedeem;
+    if (req.user.rewardPoints < pointsToRedeem) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient rewards points",
+      });
+    }
+
+    // Implement logic to redeem points (e.g., apply discount or generate voucher)
+
+    // Update user's rewardPoints field
+    req.user.rewardPoints -= pointsToRedeem;
+    await req.user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Rewards points redeemed successfully",
+      data: {
+        rewardPoints: req.user.rewardPoints,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+// Controller function to get user's reward points
+exports.getUserRewardPoints = async (req, res, next) => {
+  try {
+    res.status(200).json({
+      success: true,
+      status: 200,
+      data: {
+        rewardPoints: req.user.rewardPoints,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/////---------Analytics--------//////
 exports.aggregateReservations = catchAsync(async (req, res, next) => {
   try {
     const pipeline = [

@@ -13,7 +13,6 @@ router.route("/event-reservation/:id").post(
 );
 router.route("/table-reservation/:id").post(
   authController.protect,
-  //   authController.restrictTo("Owner"),
   // eventController.setCreator,
   reservationController.tableReservation
 );
@@ -25,24 +24,34 @@ router.route("/accept-reject-reservations/:id").post(
 );
 router.get("/", reservationController.getallReservation);
 router.get(
-  "/get-all-reservations-by-user",
+  "/user-all-reservations",
   reservationController.getAllReservationsByUser
 );
-
-// router.post(
-//   "/create",
-//   // authController.protect,
-//   //   authController.restrictTo("Owner"),
-//   // eventController.setCreator,
-//   reservationController.eventReservation
-// );
-// router.post(
-//   "/create",
-//   // authController.protect,
-//   //   authController.restrictTo("Owner"),
-//   // eventController.setCreator,
-//   reservationController.eventReservation
-// );
+router
+  .route("/:id")
+  .get(reservationController.getOneReservation)
+  .patch(
+    authController.protect,
+    // authController.restrictTo("Owner"),
+    reservationController.updatedReservation
+  )
+  .delete(
+    authController.protect,
+    // authController.restrictTo("Owner"),
+    reservationController.deleteReservation
+  );
+router.get(
+  "/redeem-rewards-points",
+  //   authController.restrictTo("Owner"),
+  // eventController.setCreator,
+  reservationController.redeemRewardsPoints
+);
+router.get(
+  "/get-user-rewards-points",
+  //   authController.restrictTo("Owner"),
+  // eventController.setCreator,
+  reservationController.getUserRewardPoints
+);
 // router.get("/", reservationController.getallReservation);
 
 // router
