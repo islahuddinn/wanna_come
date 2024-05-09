@@ -88,14 +88,14 @@ exports.eventReservation = catchAsync(async (req, res, next) => {
     receiver: businessOwner._id,
     data: { user: userId },
   });
-  await SendNotification({
-    token: token,
-    title: title,
-    body: body,
-    data: {
-      value: JSON.stringify({ user: userId }),
-    },
-  });
+  // await SendNotification({
+  //   token: token,
+  //   title: title,
+  //   body: body,
+  //   data: {
+  //     value: JSON.stringify({ user: userId }),
+  //   },
+  // });
 
   res.status(201).json({
     success: true,
@@ -268,51 +268,39 @@ exports.getAllReservationsByUser = catchAsync(async (req, res, next) => {
 });
 /////---------Reward Points--------//////
 // Controller function to redeem rewards points
-exports.redeemRewardsPoints = async (req, res, next) => {
-  try {
-    // Logic to redeem rewards points
-    const pointsToRedeem = req.body.pointsToRedeem;
-    if (req.user.rewardPoints < pointsToRedeem) {
-      return res.status(400).json({
-        success: false,
-        message: "Insufficient rewards points",
-      });
-    }
+// exports.redeemRewardsPoints = async (req, res, next) => {
+//   try {
+//     // Logic to redeem rewards points
+//     const pointsToRedeem = req.body.pointsToRedeem;
+//     if (req.user.rewardPoints < pointsToRedeem) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Insufficient rewards points",
+//       });
+//     }
 
-    // Implement logic to redeem points (e.g., apply discount or generate voucher)
+//     // Implement logic to redeem points (e.g., apply discount or generate voucher)
 
-    // Update user's rewardPoints field
-    req.user.rewardPoints -= pointsToRedeem;
-    await req.user.save();
+//     // Update user's rewardPoints field
+//     req.user.rewardPoints -= pointsToRedeem;
+//     await req.user.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Rewards points redeemed successfully",
-      data: {
-        rewardPoints: req.user.rewardPoints,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "Rewards points redeemed successfully",
+//       data: {
+//         rewardPoints: req.user.rewardPoints,
+//       },
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 // Controller function to get user's reward points
-exports.getUserRewardPoints = async (req, res, next) => {
-  try {
-    res.status(200).json({
-      success: true,
-      status: 200,
-      data: {
-        rewardPoints: req.user.rewardPoints,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 /////---------Analytics--------//////
 exports.aggregateReservations = catchAsync(async (req, res, next) => {
+  console.log("Route hit for login");
   try {
     const pipeline = [
       {

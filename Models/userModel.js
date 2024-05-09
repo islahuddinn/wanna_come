@@ -47,12 +47,9 @@ const userSchema = new mongoose.Schema(
       enum: ["free", "monthly", "yearly"],
       default: "free",
     },
-    isComplete: {
+    isProfileCompleted: {
       type: Boolean,
       default: false,
-    },
-    redeemPoints: {
-      type: String,
     },
     walletBalance: {
       type: Number,

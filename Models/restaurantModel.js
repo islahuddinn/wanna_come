@@ -11,11 +11,11 @@ const restaurantSchema = new mongoose.Schema(
       type: String,
     },
     openingTime: {
-      type: Number,
+      type: String,
       default: 0,
     },
     closingTime: {
-      type: Number,
+      type: String,
     },
     businessDescription: {
       type: String,

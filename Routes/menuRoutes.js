@@ -29,6 +29,11 @@ router.route("/update-order/:id").patch(
   // authController.restrictTo("Owner"),
   menuController.updateOrderMenu
 );
+
+router.route("/cancel-order/:id").patch(
+  // authController.restrictTo("Owner"),
+  menuController.cancelOrderMenu
+);
 router
   .route("/:id")
   .get(menuController.getOneMenu)

@@ -65,9 +65,9 @@ exports.orderMenu = async (req, res, next) => {
     const paymentIntentId = paymentIntent.id;
     // Save the order and payment intent
     const newOrder = await Order.create(order);
-    newOrder.status === "completed";
     res.status(200).json({
       success: true,
+      status: 200,
       message: "Order placed successfully",
       data: {
         newOrder,
@@ -107,7 +107,6 @@ exports.updateOrderMenu = async (req, res, next) => {
     order.pricePerItem = menuItem.price;
     order.quantity = quantity;
     order.totalPrice = totalPrice;
-    order.status === "completed";
 
     // Create a payment intent with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
@@ -123,6 +122,7 @@ exports.updateOrderMenu = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      status: 200,
       message: "Order updated successfully",
       data: {
         order,
@@ -137,7 +137,7 @@ exports.updateOrderMenu = async (req, res, next) => {
 ///////------cencel menu order-------//////
 exports.cancelOrderMenu = async (req, res, next) => {
   try {
-    const orderId = req.params.orderId;
+    const orderId = req.params.id;
 
     // Find the order by orderId
     const order = await Order.findById(orderId);
@@ -157,6 +157,7 @@ exports.cancelOrderMenu = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      status: 200,
       message: "Order canceled successfully",
       data: {
         order,
@@ -168,10 +169,10 @@ exports.cancelOrderMenu = async (req, res, next) => {
 };
 
 exports.getallMenu = factory.getAll(Menu);
-exports.getallOrder = factory.getAll(Order);
 exports.getOneMenu = factory.getOne(Menu);
-exports.getOneOrder = factory.getOne(Order);
 exports.updateMenu = factory.updateOne(Menu);
-// exports.updateOrder = factory.updateOne(Order);
 exports.deleteMenu = factory.deleteOne(Menu);
+/////order menu
+exports.getallOrder = factory.getAll(Order);
+exports.getOneOrder = factory.getOne(Order);
 exports.deleteOrder = factory.deleteOne(Order);

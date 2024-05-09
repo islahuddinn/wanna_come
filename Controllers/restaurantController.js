@@ -1,43 +1,53 @@
-const catchAsync = require("../Utils/catchAsync");
 const appError = require("../Utils/appError");
 const Restaurant = require("../Models/restaurantModel");
-const Event = require("../Models/eventModel");
-const User = require("../Models/userModel");
 const factory = require("./handleFactory");
+const { loginChecks } = require("../Utils/login-checks");
 
-// exports.createRestaurant = catchAsync(async (req, res, next) => {
-//   const {
-//     image,
-//     businessName,
-//     businessDescription,
-//     businessLocation,
-//     openingTime,
-//     closingTime,
-//   } = req.body;
+exports.updateBusinessProfile = async (req, res, next) => {
+  const user = req.user;
+  try {
+    if (user.userType !== "Owner") {
+      return next(
+        new appError(
+          "You are not authorized to update the business profile",
+          403
+        )
+      );
+    }
 
-//   try {
-//     // Create a new restaurant
-//     const newRestaurant = await Restaurant.create({
-//       image,
-//       businessName,
-//       businessDescription,
-//       businessLocation,
-//       openingTime,
-//       closingTime,
-//       OwnerId: req.user.id,
-//     });
+    const {
+      image,
+      businessName,
+      businessDescription,
+      businessLocation,
+      openingTime,
+      closingTime,
+    } = req.body;
 
-//     res.status(201).json({
-//       success: true,
-//       status: 201,
-//       restaurant: newRestaurant,
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+    // Create a new restaurant
+    const newRestaurant = await Restaurant.create({
+      image,
+      businessName,
+      businessDescription,
+      businessLocation,
+      openingTime,
+      closingTime,
+      createdBy: user.id,
+    });
+    user.isProfileCompleted = true;
+    await user.save();
+    res.act = loginChecks(user);
 
-exports.createRestaurant = factory.creatOne(Restaurant);
+    res.status(201).json({
+      success: true,
+      status: 201,
+      restaurant: newRestaurant,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getallRestaurant = factory.getAll(Restaurant);
 exports.getOneRestaurant = factory.getOne(Restaurant);
 exports.updateRestaurant = factory.updateOne(Restaurant);
