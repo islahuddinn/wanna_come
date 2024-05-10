@@ -1,9 +1,12 @@
 const catchAsync = require("../Utils/catchAsync");
 const CustomError = require("../Utils/appError");
 const Menu = require("../Models/menuModel");
+const User = require("../Models/userModel");
 const factory = require("./handleFactory");
 const Order = require("../Models/orderModel");
+const Notification = require("../Models/notificationModel");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { SendNotification } = require("../Utils/notification");
 
 exports.createMenu = catchAsync(async (req, res, next) => {
   const { dishName, image, price, description } = req.body;
@@ -65,6 +68,36 @@ exports.orderMenu = async (req, res, next) => {
     const paymentIntentId = paymentIntent.id;
     // Save the order and payment intent
     const newOrder = await Order.create(order);
+    /////------send notikipation-------/////
+    const title = `Menu order for "${menuItem.dishName}" has been made by user ${userId}`;
+    const body = `Menu order for "${menuItem}" has been made by user ${userId}`;
+    const ownerId = menuItem.createdBy.id;
+    console.log(ownerId, "mr owner id");
+    const businessOwner = await User.findById(ownerId);
+    console.log("here is the business owner of menu !", businessOwner);
+
+    // Find the deviceToken of the business owner
+    const token = businessOwner.deviceToken;
+    console.log("fcmToken is here !", token);
+    // const token = (await RefreshToken.find({ user: creator.id })).map(
+    //   ({ deviceToken }) => deviceToken
+    // );
+    await Notification.create({
+      token: token,
+      title: title,
+      body: body,
+      receiver: businessOwner._id,
+      sender: userId,
+      data: newOrder,
+    });
+    // await SendNotification({
+    //   token: token,
+    //   title: title,
+    //   body: body,
+    //   data: {
+    //     value: JSON.stringify({ user: userId }),
+    //   },
+    // });
     res.status(200).json({
       success: true,
       status: 200,

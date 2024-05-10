@@ -44,9 +44,15 @@ router.get("/rewards-points", userControler.getUserRewardPoints);
 router.get("/wallet-ballance", userControler.getWalletBalance);
 
 router.get("/me", userControler.getMe, userControler.getUser);
-router.patch("/updateProfile", userControler.updateMe);
+router.patch(
+  "/updateProfile",
+  authController.restrictTo("User"),
+  userControler.updateMe
+);
 router.patch(
   "/update-business-profile",
+  authController.restrictTo("Owner"),
+
   restaurantController.updateBusinessProfile
 );
 // router.patch("/updateMe", userControler.updateMe);

@@ -3,6 +3,7 @@ const appError = require("../Utils/appError");
 const Event = require("../Models/eventModel");
 const User = require("../Models/userModel");
 const factory = require("./handleFactory");
+const Notification = require("../Models/notificationModel");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const {
   SendNotification,
@@ -36,41 +37,42 @@ exports.createEvent = catchAsync(async (req, res, next) => {
   });
 
   ////// Send Notification
-  // const data = {
-  //   eventTitle: req.body.title,
-  //   eventInfo: req.body.eventInfo,
-  //   eventLocation: req.body.eventLocation,
-  // };
-  // const notificationTitle = "New Event Created";
-  // const notificationBody =
-  //   "Hy Folks, another exciting event is going to be happen at eventLocation.";
+  const data = {
+    eventTitle: req.body.title,
+    eventInfo: req.body.eventInfo,
+    eventLocation: req.body.eventLocation,
+  };
+  const notificationTitle = `New Event "${newEvent.title}" has been Created`;
+  const notificationBody = `Hy Folks, another exciting event "${newEvent}" is going to be happen at eventLocation.`;
 
-  // // const deviceToken = req.body.FCMToken;
+  // const deviceToken = req.body.FCMToken;
 
-  // const devices = await User.find({}, "deviceToken");
-  // console.log(devices);
-  // const FCMTokens = devices.map((device) => device.deviceToken);
-  // console.log(FCMTokens);
+  const devices = await User.find({}, "deviceToken");
+  console.log(devices);
+  const FCMTokens = devices.map((device) => device.deviceToken);
+  console.log(FCMTokens);
 
-  // if (!FCMTokens) {
-  //   return res.status(404).json({
-  //     success: false,
-  //     status: 404,
-  //     message: "FCMTokens not found...",
-  //   });
-  // }
+  if (!FCMTokens) {
+    return res.status(404).json({
+      success: false,
+      status: 404,
+      message: "FCMTokens not found...",
+    });
+  }
+  await Notification.create({
+    token: FCMTokens,
+    title: notificationTitle,
+    body: notificationBody,
+    sender: req.user.id,
+    data: data,
+  });
 
-  // try {
-  //   await SendNotificationMultiCast({
-  //     tokens: FCMTokens,
-  //     title: notificationTitle,
-  //     body: notificationBody,
-  //     data: data,
-  //   });
-  //   console.log("Notification sent to all users.");
-  // } catch (error) {
-  //   console.error("Error sending notification.....:", error);
-  // }
+  // await SendNotificationMultiCast({
+  //   tokens: FCMTokens,
+  //   title: notificationTitle,
+  //   body: notificationBody,
+  //   data: data,
+  // });
 
   res.status(201).json({
     status: 201,
