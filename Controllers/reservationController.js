@@ -229,6 +229,8 @@ exports.acceptRejectReservation = catchAsync(async (req, res, next) => {
     token: token,
     title: title,
     body: body,
+    receiver: booker,
+    sender: req.user.id,
     data: { reservationId: reservationId },
   });
 
@@ -299,9 +301,11 @@ exports.getAllReservationsByUser = catchAsync(async (req, res, next) => {
 // Controller function to get user's reward points
 
 /////---------Analytics--------//////
-exports.aggregateReservations = catchAsync(async (req, res, next) => {
-  console.log("Route hit for login");
+
+exports.aggregateReservations = async (req, res, next) => {
   try {
+    console.log("Route hit for login");
+
     const pipeline = [
       {
         $match: {
@@ -310,7 +314,9 @@ exports.aggregateReservations = catchAsync(async (req, res, next) => {
       },
       {
         $project: {
+          day: { $dayOfMonth: "$date" }, // Extract day from date
           month: { $month: "$date" }, // Extract month from date
+          year: { $year: "$date" }, // Extract year from date
           eventReservation: {
             $cond: [{ $gt: ["$event", null] }, 1, 0], // Check if event reservation exists
           },
@@ -321,21 +327,71 @@ exports.aggregateReservations = catchAsync(async (req, res, next) => {
       },
       {
         $group: {
-          _id: "$month",
+          _id: { day: "$day", month: "$month", year: "$year" },
           totalEventReservations: { $sum: "$eventReservation" },
           totalTableReservations: { $sum: "$tableReservation" },
         },
       },
       {
-        $sort: { _id: 1 }, // Sort by month in ascending order
+        $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 }, // Sort by year, month, and day in ascending order
       },
     ];
 
     const result = await Reservation.aggregate(pipeline);
-    return result;
+    console.log("Aggregated Reservations:", result);
+
+    res.status(200).json({
+      success: true,
+      message: "Reservations aggregated successfully",
+      data: result,
+    });
   } catch (error) {
     console.error("Error aggregating reservations:", error);
-    throw error;
+    next(new appError("Error aggregating reservations", 500));
+  }
+};
+
+/////-------search reservations-----////
+exports.searchReservations = catchAsync(async (req, res, next) => {
+  // Extract the search keyword from the query string
+  const keyword = req.query.search;
+
+  try {
+    ///// Search for users based on the name or email
+    const users = await User.find({
+      $or: [
+        { name: { $regex: keyword, $options: "i" } },
+        { email: { $regex: keyword, $options: "i" } },
+      ],
+    });
+
+    //////Extract the user IDs from the found users
+    const userIds = users.map((user) => user._id);
+
+    const reservations = await Reservation.find({
+      $or: [
+        { text: { $regex: keyword, $options: "i" } },
+        { creator: { $in: userIds } },
+      ],
+    });
+
+    // If no posts are found, return an error
+    if (!reservations.length) {
+      return next(new appError("No reservation found", 404));
+    }
+
+    // Return the found posts
+    res.status(200).json({
+      status: "success",
+      length: reservations.length,
+      data: {
+        posts,
+      },
+    });
+  } catch (error) {
+    // Handle errors
+    console.error("Error searching reservations:", error);
+    return next(new appError("Internal server error", 500));
   }
 });
 exports.getallReservation = factory.getAll(Reservation);

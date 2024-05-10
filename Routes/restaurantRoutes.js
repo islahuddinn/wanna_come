@@ -11,7 +11,7 @@ router.get("/", restaurantController.getallRestaurant);
 router
   .route("/:id")
   .get(
-    authController.restrictTo("Owner"),
+    // authController.restrictTo("Owner"),
     restaurantController.getOneRestaurant
   )
   .patch(
