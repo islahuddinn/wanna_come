@@ -530,10 +530,10 @@ exports.protect = catchAsync(async (req, res, next) => {
 // //================= Authorization=============
 // //Restrict who can delete tour
 
-exports.restrictTo = (...roles) => {
+exports.restrictTo = (...userType) => {
   return (req, res, next) => {
-    console.log(req.user.name, roles);
-    if (!roles.includes(req.user.role)) {
+    console.log(req.user.name, userType);
+    if (!userType.includes(req.user.userType)) {
       return res.status(403).send({
         status: 403,
         success: false,
