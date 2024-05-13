@@ -226,13 +226,19 @@ exports.signup = catchAsync(async (req, res, next) => {
   );
 
   console.log(otp);
-
-  res.status(201).json({
-    status: 201,
-    success: true,
-    message: `OTP Sent to your email ${newUser.email}`,
-    data: { user: newUser },
-  });
+  return creatSendToken(
+    newUser,
+    201,
+    `OTP Sent to your email ${newUser.email}`,
+    res,
+    req.body.device
+  );
+  // res.status(201).json({
+  //   status: 201,
+  //   success: true,
+  //   message: `OTP Sent to your email ${newUser.email}`,
+  //   data: { user: newUser },
+  // });
 });
 
 // ========= Send  OTP  =====================
