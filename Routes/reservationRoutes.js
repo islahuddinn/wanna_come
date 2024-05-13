@@ -23,6 +23,10 @@ router.get(
   reservationController.getAllReservationsByUser
 );
 router.get(
+  "/all-table-reservations",
+  reservationController.getAllTableReservations
+);
+router.get(
   "/get-analytics",
   // authController.restrictTo("Owner"),
   reservationController.aggregateReservations

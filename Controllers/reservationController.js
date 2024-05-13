@@ -131,21 +131,21 @@ exports.tableReservation = catchAsync(async (req, res, next) => {
 
   /// Create a payment intent using Stripe
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: menu.price * persons * 100,
+    amount: menu ? menu.price * persons * 100 : 0,
     currency: "usd",
     metadata: {
       restaurant: restaurant.id,
       userId: userId,
     },
   });
-  if (time < restaurant.openingTime || time > restaurant.closingTime) {
-    return next(
-      new appError(
-        "Select the time between opening and closing time of restaurant",
-        400
-      )
-    );
-  }
+  // if (time < restaurant.openingTime || time > restaurant.closingTime) {
+  //   return next(
+  //     new appError(
+  //       "Select the time between opening and closing time of restaurant",
+  //       400
+  //     )
+  //   );
+  // }
   // Create reservation
   const reservation = await Reservation.create({
     restaurant: restaurantId,
@@ -300,6 +300,26 @@ exports.getAllReservationsByUser = catchAsync(async (req, res, next) => {
 // };
 // Controller function to get user's reward points
 
+/////------get all table reservations
+
+exports.getAllTableReservations = async (req, res, next) => {
+  try {
+    // Find all table reservations
+    const tableReservations = await Reservation.find({
+      event: { $exists: false },
+    }).populate("reservedBy");
+
+    res.status(200).json({
+      success: true,
+      status: 200,
+      data: tableReservations,
+    });
+  } catch (error) {
+    console.error("Error retrieving table reservations:", error);
+    next(new CustomError("Error retrieving table reservations", 500));
+  }
+};
+
 /////---------Analytics--------//////
 
 exports.aggregateReservations = async (req, res, next) => {
@@ -353,47 +373,50 @@ exports.aggregateReservations = async (req, res, next) => {
 
 /////-------search reservations-----////
 exports.searchReservations = catchAsync(async (req, res, next) => {
-  // Extract the search keyword from the query string
   const keyword = req.query.search;
 
   try {
-    ///// Search for users based on the name or email
     const users = await User.find({
       $or: [
-        { name: { $regex: keyword, $options: "i" } },
+        { firstName: { $regex: keyword, $options: "i" } },
         { email: { $regex: keyword, $options: "i" } },
       ],
     });
 
-    //////Extract the user IDs from the found users
     const userIds = users.map((user) => user._id);
 
     const reservations = await Reservation.find({
       $or: [
         { text: { $regex: keyword, $options: "i" } },
-        { creator: { $in: userIds } },
+        { reservedBy: { $in: userIds } },
+        { restaurant: { $in: userIds } },
+        { event: { $in: userIds } },
       ],
     });
 
-    // If no posts are found, return an error
     if (!reservations.length) {
       return next(new appError("No reservation found", 404));
     }
 
-    // Return the found posts
+    // Filter out reservations with invalid date values
+    const validReservations = reservations.filter(
+      (reservation) =>
+        reservation.date instanceof Date && !isNaN(reservation.date.getTime())
+    );
+
     res.status(200).json({
       status: "success",
-      length: reservations.length,
+      length: validReservations.length,
       data: {
-        posts,
+        reservations: validReservations,
       },
     });
   } catch (error) {
-    // Handle errors
     console.error("Error searching reservations:", error);
     return next(new appError("Internal server error", 500));
   }
 });
+
 exports.getallReservation = factory.getAll(Reservation);
 exports.getOneReservation = factory.getOne(Reservation);
 exports.updatedReservation = factory.updateOne(Reservation);
