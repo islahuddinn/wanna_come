@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
       enum: ["User", "Owner", "Admin"],
       message: ["enter vallid role"],
       default: "User",
+      required: [true, "Enter a valid user type"],
     },
     password: {
       type: String,

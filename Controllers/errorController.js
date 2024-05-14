@@ -1,87 +1,76 @@
-const CustomError = require("./../Utils/appError");
+const AppError = require("../Utils/appError");
 
-const handleCastError = (err) => {
-  const message = `Invalid ${err.path} : ${err.value}`;
-  return new CustomError(message, 400);
+const handleCastErrorDB = (err) => {
+  const message = `Invalid ${err.path}: ${err.value}`;
+  return new AppError(message, 400, "invalid-input");
 };
 
-const tokenExpiredError = (err) => {
-  return new CustomError("Your jwt token has expired please login again", 400);
+const handleDuplicateFieldsDB = (err) => {
+  const value = err.message.match(/(["'])(\\?.)*?\1/);
+  const duplicateValue = value ? value[0] : "unknown";
+  const message = `Duplicate field value: ${duplicateValue}. Please use another value`;
+  return new AppError(message, 400, "duplicate-field");
 };
 
-const jsonWebTokenError = (err) => {
-  return new CustomError("Invalid Token. Please login again!!", 401);
+const handleValidationErrorDB = (err) => {
+  if (err.errors) {
+    const errors = Object.values(err.errors).map((error) => error.message);
+    const message = `Invalid input data. ${errors.join(", ")}`;
+    return new AppError(message, 400, "invalid-input-data");
+  } else {
+    return new AppError("Invalid input data", 400, "invalid-input");
+  }
 };
 
-const duplicateKeyError = (err) => {
-  const value = err.message.match(/(["'])(\\?.)*?\1/)[0];
-  console.log(value);
+const handleJWTError = () =>
+  new AppError("Invalid token. Please login again", 401, "invalid-token");
 
-  return new CustomError(
-    `Dublicate Field Value: ${value}. Please use a different value`,
-    400
-  );
-};
+const handleTokenExpiredError = () =>
+  new AppError("Expired token. Please login again", 401, "token-expired");
 
-const validationError = (err) => {
-  const errors = Object.values(err.errors).map((value) => value.message);
-  const errorMsgs = errors.join(". ");
-  const msg = `Invalid input data: ${errorMsgs}`;
-
-  // console.log(errors);
-  // console.log(msg);
-  return new CustomError(msg, 400);
-};
-
-const devErrors = (res, error) => {
-  res.status(error.statusCode).json({
-    status: error.statusCode,
-    success: error.status,
-    message: error.message,
-    stackTrace: error.stack,
-    error: error,
+const sendErrorResponse = (err, res) => {
+  res.status(err.statusCode).json({
+    success: false,
+    status: err.statusCode,
+    message: err.message,
+    errorType: err.errorType,
+    data: err.data || {},
   });
 };
 
-const prodErrors = (res, error) => {
-  if (error.isOperational) {
-    res.status(error.statusCode).json({
-      status: error.statusCode,
-      success: error.status,
-      message: error.message,
-    });
-  } else {
-    res.status(500).json({
-      status: "fail",
-      message: "Something went wrong please try again",
-    });
-  }
-};
+module.exports = (err, req, res, next) => {
+  console.error("Incoming Error:", err);
 
-module.exports = (error, req, res, next) => {
-  error.statusCode = error.statusCode || 500;
-  error.message = error.message || "Internal Server Error";
-  error.status = error.status || "error";
-  console.error("Incoming Error:", error);
-
-  if (process.env.NODE_ENV === "development") {
-    devErrors(res, error);
-  } else if (process.env.NODE_ENV === "production") {
-    if (error.name === "TokenExpiredError") {
-      error = tokenExpiredError(error);
-    }
-    if (error.name === "JsonWebTokenError") {
-      error = jsonWebTokenError(error);
-    }
-    if (error.code === 11000) {
-      error = duplicateKeyError(error);
-    }
-    if (error.name === "ValidationError") {
-      error = validationError(error);
-    }
-    if (error.name === "CastError") {
-      error = handleCastError(error);
-    }
-    prodErrors(res, error);
+  if (process.env.NODE_ENV !== "test") {
+    console.error(err);
   }
+
+  if (process.env.NODE_ENV === "production") {
+  }
+
+  switch (err.name) {
+    case "CastError":
+      err = handleCastErrorDB(err);
+      break;
+    case 11000:
+    case 11001:
+    case "MongooseError":
+      err = handleDuplicateFieldsDB(err);
+      break;
+    case "ValidationError":
+    case "EPROTOCOL":
+    case "TypeError":
+      err = handleValidationErrorDB(err);
+      break;
+    case "JsonWebTokenError":
+      err = handleJWTError();
+      break;
+    case "TokenExpiredError":
+      err = handleTokenExpiredError();
+      break;
+    default:
+      return sendErrorResponse(err, res);
+  }
+
+  sendErrorResponse(err, res);
 };

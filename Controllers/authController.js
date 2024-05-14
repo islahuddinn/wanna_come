@@ -155,6 +155,7 @@ exports.socialLogin = catchAsync(async (req, res) => {
 // =========SIGNUP USER=====================
 
 exports.signup = catchAsync(async (req, res, next) => {
+  const deviceData = req.body.device;
   // Check if password and confirm password match
   if (req.body.password !== req.body.confirmPassword) {
     return res.status(400).json({
@@ -185,7 +186,12 @@ exports.signup = catchAsync(async (req, res, next) => {
       data: {},
     });
   }
-
+  if (!deviceData) {
+    return next(new AppError("Please provide deviceId or DeviceToken", 400));
+  }
+  if (!deviceData.id || !deviceData.deviceToken) {
+    return next(new AppError("Provide Device object", 400));
+  }
   // If password and confirm password match, create new user
   const newUser = await User.create({
     userType: req.body.userType,
@@ -231,14 +237,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     201,
     `OTP Sent to your email ${newUser.email}`,
     res,
-    req.body.device
+    { device: req.body.device }
   );
-  // res.status(201).json({
-  //   status: 201,
-  //   success: true,
-  //   message: `OTP Sent to your email ${newUser.email}`,
-  //   data: { user: newUser },
-  // });
 });
 
 // ========= Send  OTP  =====================

@@ -22,7 +22,9 @@ exports.createEvent = catchAsync(async (req, res, next) => {
     availableTickets,
     soldTickets,
   } = req.body;
-
+  // if (!title, !image,!price,date,time,location,description,availableTickets,soldTickets ) {
+  //   return next(new appError("Please provide all required fields", 400));
+  // }
   const newEvent = await Event.create({
     title,
     image,
