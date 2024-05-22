@@ -18,6 +18,8 @@ exports.updateBusinessProfile = async (req, res, next) => {
     const {
       image,
       businessName,
+      firstName,
+      lastName,
       businessDescription,
       businessLocation,
       openingTime,
@@ -28,6 +30,8 @@ exports.updateBusinessProfile = async (req, res, next) => {
     const newRestaurant = await Restaurant.create({
       image,
       businessName,
+      firstName,
+      lastName,
       businessDescription,
       businessLocation,
       openingTime,
