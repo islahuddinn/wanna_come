@@ -10,6 +10,15 @@ const restaurantSchema = new mongoose.Schema(
     businessName: {
       type: String,
     },
+    firstName: {
+      type: String,
+    },
+    lastName: {
+      type: String,
+    },
+    fullName: {
+      type: String,
+    },
     openingTime: {
       type: String,
       default: 0,
