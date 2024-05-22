@@ -1,8 +1,8 @@
 const AWS = require("aws-sdk");
 
 const s3 = new AWS.S3({
-  accessKeyId: "AKIA47CRXSL7Q7ESTQG4",
-  secretAccessKey: "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",
+  accessKeyId: "",
+  secretAccessKey: "",
 });
 
 const uploadFile = async (file) => {
