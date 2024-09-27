@@ -736,3 +736,65 @@ exports.logout = catchAsync(async (req, res, next) => {
     data: {},
   });
 });
+
+///----Delete Account
+
+exports.sendOtpForDeletingMe = catchAsync(async (req, res, next) => {
+  const { password } = req.body;
+  if (!password) {
+    return next(
+      new AppError("Please type your password before deleting account.", 400)
+    );
+  }
+  const user = await User.findById(req.user._id).select("+password");
+  const isMatch = await user.correctPassword(password, user.password);
+  if (!isMatch) {
+    return next(new AppError("Please type the correct password", 400));
+  }
+  const otp = generateOtp(4);
+  user.otp = otp;
+  await user.save();
+  if (!otp) {
+    return next(new AppError("Error while generating OTP", 400));
+  }
+  await user.save();
+  const message = `Your OTP for Account Deletion is: ${otp}`;
+  const email = new Email({
+    email: user.email,
+    subject: `OTP VERIFICATION`,
+    message: message,
+  });
+  await email.sendWelcome(otp);
+  res.status(200).json({
+    status: 200,
+    success: true,
+    message: "OTP has been sent to your email for verification.",
+  });
+});
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  const otp = req.body.otp;
+  if (!otp) {
+    return next(new AppError("Please provide OTP", 400));
+  }
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return next(new AppError("Could not find the user", 404));
+  }
+  if (user.otp !== otp || user.otpExpires < Date.now()) {
+    return next(new AppError("Verification Failed. Your OTP is Invalid", 400));
+  }
+  const deletedUser = await User.findByIdAndDelete(req.user._id);
+  // user.active = false;
+  // user.otp = undefined;
+  // user.otpExpires = undefined;
+  // user.email = undefined;
+  // await user.save();
+  // console.log(deletedUser, "Here is the user");
+  res.status(200).json({
+    status: 200,
+    success: true,
+    message: "Account Deleted!",
+    // data: deletedUser ? deletedUser : null,
+    data: null,
+  });
+});

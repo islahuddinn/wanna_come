@@ -34,6 +34,8 @@ router.post(
 // protecting all routes ussing protect midleware
 router.use(authController.protect);
 router.patch("/updateMyPassword", authController.updatePassword);
+router.post("/delete-account-send-otp", authController.sendOtpForDeletingMe);
+router.post("/delete-account-verify", authController.deleteMe);
 router.get("/mynotifications", userControler.mynotifications);
 router.post("/logout", authController.logout);
 // router.post(
