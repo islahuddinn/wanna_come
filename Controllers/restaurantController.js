@@ -1,5 +1,6 @@
 const appError = require("../Utils/appError");
 const Restaurant = require("../Models/restaurantModel");
+const User = require("../Models/userModel");
 const factory = require("./handleFactory");
 const { loginChecks } = require("../Utils/login-checks");
 
@@ -54,7 +55,8 @@ exports.updateBusinessProfile = async (req, res, next) => {
 
 /// Get user restaurant
 exports.getBusinessProfile = async (req, res, next) => {
-  const user = req.user;
+  const userId = req.params.id;
+  const user = await User.findById(userId);
   try {
     // Check if the user is authorized to view the business profile
     if (user.userType !== "Owner") {

@@ -7,7 +7,10 @@ const router = express.Router();
 router.use(authController.protect);
 
 router.get("/", restaurantController.getallRestaurant);
-router.get("/get-business-profile", restaurantController.getBusinessProfile);
+router.get(
+  "/get-business-profile/:id",
+  restaurantController.getBusinessProfile
+);
 
 router
   .route("/:id")
